@@ -759,19 +759,19 @@
         </div>
     </div>
     <div class="tab-bar">
-        <div class="tab active" data-tab="attendance">
+        <div class="tab active" data-tab="attendance" onclick="switchTab('attendance')">
             <span class="tab-icon">📝</span>
             <span class="tab-label">Take</span>
         </div>
-        <div class="tab" data-tab="track">
+        <div class="tab" data-tab="track" onclick="switchTab('track')">
             <span class="tab-icon">📊</span>
             <span class="tab-label">Track</span>
         </div>
-        <div class="tab" data-tab="summary">
+        <div class="tab" data-tab="summary" onclick="switchTab('summary')">
             <span class="tab-icon">📋</span>
             <span class="tab-label">Summary</span>
         </div>
-        <div class="tab" data-tab="manage">
+        <div class="tab" data-tab="manage" onclick="switchTab('manage')">
             <span class="tab-icon">⚙️</span>
             <span class="tab-label">Manage</span>
         </div>
@@ -2666,8 +2666,10 @@
 
                 // Initialize the app
                 switchTab('attendance');
-            });
+            }); // Close DOMContentLoaded
+        } // Close main script block
 
+        // End of main script block
     </script>
 </body>
 
