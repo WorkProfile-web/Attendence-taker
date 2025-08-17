@@ -996,8 +996,24 @@
         }
 
         function addStudent() {
-            const roll = document.getElementById('new-student-roll').value.trim();
-            const name = document.getElementById('new-student-name').value.trim();
+            console.log('addStudent function called'); // Debug log
+
+            const rollElement = document.getElementById('new-student-roll');
+            const nameElement = document.getElementById('new-student-name');
+
+            console.log('Roll element:', rollElement); // Debug log
+            console.log('Name element:', nameElement); // Debug log
+
+            if (!rollElement || !nameElement) {
+                alert('Error: Could not find input fields');
+                return;
+            }
+
+            const roll = rollElement.value.trim();
+            const name = nameElement.value.trim();
+
+            console.log('Roll value:', roll); // Debug log
+            console.log('Name value:', name); // Debug log
 
             if (!roll || !name) {
                 alert('Please enter both roll number and name');
@@ -1005,21 +1021,28 @@
             }
 
             const students = getStudents();
+            console.log('Current students:', students); // Debug log
+
             if (students.find(s => s.roll === roll)) {
                 alert('Student with this roll number already exists');
                 return;
             }
 
-            students.push({
+            const newStudent = {
                 id: Date.now(),
                 roll: roll,
                 name: name
-            });
+            };
+
+            students.push(newStudent);
+            console.log('Adding student:', newStudent); // Debug log
 
             setStudents(students);
-            document.getElementById('new-student-roll').value = '';
-            document.getElementById('new-student-name').value = '';
+            rollElement.value = '';
+            nameElement.value = '';
             loadStudentsList();
+
+            console.log('Student added successfully'); // Debug log
         }
 
         function deleteStudent(id) {
@@ -1160,7 +1183,10 @@
             document.getElementById('download-pdf').addEventListener('click', downloadPDF);
 
             // Manage tab
-            document.getElementById('add-student').addEventListener('click', addStudent);
+            document.getElementById('add-student').addEventListener('click', function () {
+                console.log('Add student button clicked'); // Debug log
+                addStudent();
+            });
             document.getElementById('add-subject').addEventListener('click', addSubject);
 
             // Enter key support
