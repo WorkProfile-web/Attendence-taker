@@ -395,6 +395,23 @@
                     <button class="action-btn" id="add-student">Add</button>
                 </div>
                 <div id="students-list" class="list"></div>
+
+                <!-- Bulk Import Students -->
+                <div
+                    style="margin-top: 16px; padding: 16px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #2196f3;">
+                    <h4 style="margin: 0 0 12px 0; color: #2196f3;">📋 Bulk Import Students</h4>
+                    <p style="margin: 0 0 12px 0; font-size: 14px; color: #666;">
+                        Copy and paste data from Excel. Format: Roll Number, Student Name (one per line)
+                    </p>
+                    <textarea id="bulk-student-data"
+                        placeholder="Example:&#10;2024-CS-001, John Doe&#10;2024-CS-002, Jane Smith&#10;2024-CS-003, Ali Khan"
+                        class="input" style="min-height: 120px; font-family: monospace; font-size: 14px;"></textarea>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button class="action-btn" onclick="importStudents()">📥 Import Students</button>
+                        <button class="action-btn" onclick="clearBulkData()" style="background: #999;">Clear</button>
+                    </div>
+                    <div id="import-status" style="margin-top: 8px; font-size: 14px;"></div>
+                </div>
             </div>
 
             <!-- Subjects Management -->
@@ -984,9 +1001,10 @@
                         <strong>${record.roll}</strong> - ${record.name}
                     </div>
                     <div class="actions">
-                        <button class="action-btn ${record.status === 'present' ? '' : 'delete'}" 
-                                onclick="toggleAttendance('${session.id}', ${index})">
-                            ${record.status === 'present' ? 'Present' : 'Absent'}
+                        <button class="btn ${record.status === 'present' ? 'present' : 'absent'}" 
+                                onclick="toggleAttendance('${key}', ${index})"
+                                style="min-width: 80px;">
+                            ${record.status === 'present' ? '✓ Present' : '✗ Absent'}
                         </button>
                     </div>
                 `;
@@ -994,13 +1012,21 @@
             });
         }
 
-        function toggleAttendance(sessionId, recordIndex) {
+        function toggleAttendance(attendanceKey, recordIndex) {
             const attendance = getAttendance();
-            const session = attendance.find(a => a.id == sessionId);
-            const record = session.records[recordIndex];
-            record.status = record.status === 'present' ? 'absent' : 'present';
-            setAttendance(attendance);
-            loadAttendanceForEdit();
+            const session = attendance[attendanceKey];
+
+            if (session && session.records[recordIndex]) {
+                const record = session.records[recordIndex];
+                record.status = record.status === 'present' ? 'absent' : 'present';
+
+                // Update the attendance
+                attendance[attendanceKey] = session;
+                setAttendance(attendance);
+
+                // Reload the display
+                loadAttendanceForEdit();
+            }
         }
 
         // Summary Tab Functions
@@ -1484,6 +1510,88 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        function importStudents() {
+            const bulkData = document.getElementById('bulk-student-data').value.trim();
+            const statusDiv = document.getElementById('import-status');
+
+            if (!bulkData) {
+                statusDiv.innerHTML = '<span style="color: #e53935;">Please enter student data to import.</span>';
+                return;
+            }
+
+            const lines = bulkData.split('\n').map(line => line.trim()).filter(line => line);
+            const students = getStudents();
+            const newStudents = [];
+            const errors = [];
+            const duplicates = [];
+
+            lines.forEach((line, index) => {
+                // Handle different separators: comma, tab, or multiple spaces
+                const parts = line.split(/[,\t]|\s{2,}/).map(part => part.trim()).filter(part => part);
+
+                if (parts.length < 2) {
+                    errors.push(`Line ${index + 1}: Invalid format - "${line}"`);
+                    return;
+                }
+
+                const roll = parts[0];
+                const name = parts.slice(1).join(' '); // Join remaining parts as name
+
+                // Check for duplicates in existing students
+                if (students.find(s => s.roll === roll)) {
+                    duplicates.push(`${roll} - ${name}`);
+                    return;
+                }
+
+                // Check for duplicates in new batch
+                if (newStudents.find(s => s.roll === roll)) {
+                    errors.push(`Line ${index + 1}: Duplicate roll number in import data - "${roll}"`);
+                    return;
+                }
+
+                newStudents.push({
+                    id: Date.now() + index, // Ensure unique IDs
+                    roll: roll,
+                    name: name
+                });
+            });
+
+            // Show results
+            let statusMessage = '';
+
+            if (newStudents.length > 0) {
+                // Add new students
+                students.push(...newStudents);
+                setStudents(students);
+                loadStudentsList();
+                statusMessage += `<span style="color: #43a047;">✅ Successfully imported ${newStudents.length} students.</span><br>`;
+            }
+
+            if (duplicates.length > 0) {
+                statusMessage += `<span style="color: #ff9800;">⚠️ Skipped ${duplicates.length} duplicate(s): ${duplicates.slice(0, 3).join(', ')}${duplicates.length > 3 ? '...' : ''}</span><br>`;
+            }
+
+            if (errors.length > 0) {
+                statusMessage += `<span style="color: #e53935;">❌ ${errors.length} error(s): ${errors.slice(0, 2).join(', ')}${errors.length > 2 ? '...' : ''}</span><br>`;
+            }
+
+            if (newStudents.length === 0 && duplicates.length === 0 && errors.length === 0) {
+                statusMessage = '<span style="color: #666;">No valid data found to import.</span>';
+            }
+
+            statusDiv.innerHTML = statusMessage;
+
+            // Clear the textarea if import was successful
+            if (newStudents.length > 0 && errors.length === 0) {
+                document.getElementById('bulk-student-data').value = '';
+            }
+        }
+
+        function clearBulkData() {
+            document.getElementById('bulk-student-data').value = '';
+            document.getElementById('import-status').innerHTML = '';
         }
 
         function addSubject() {
