@@ -1063,16 +1063,10 @@
         }
 
         function generateSubjectSummary(students, subjects, attendance, container) {
-            console.log('Subjects available:', subjects); // Debug
-            console.log('Attendance data:', attendance); // Debug
-
             let html = '<table class="summary-table"><thead><tr><th>Subject</th><th>Date</th><th>Lecture</th><th>Present</th><th>Absent</th><th>Total</th></tr></thead><tbody>';
 
             attendance.forEach(session => {
-                console.log('Looking for subject ID:', session.subjectId); // Debug
                 const subject = subjects.find(s => s.id === session.subjectId);
-                console.log('Found subject:', subject); // Debug
-
                 const present = session.records.filter(r => r.status === 'present').length;
                 const absent = session.records.filter(r => r.status === 'absent').length;
                 const lectureInfo = session.lectureNumber ? `${session.lectureNumber}${getOrdinalSuffix(session.lectureNumber)}` : 'N/A';
@@ -1089,9 +1083,7 @@
 
             html += '</tbody></table>';
             container.innerHTML = html;
-        }
-
-        function downloadPDF() {
+        } function downloadPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
@@ -1100,29 +1092,11 @@
             const dateFrom = document.getElementById('summary-date-from').value;
             const dateTo = document.getElementById('summary-date-to').value;
 
-            // Title
-            const title = type === 'student' ? 'Student-wise Attendance Summary' : 'Subject-wise Attendance Summary';
-            doc.setFontSize(16);
-            doc.text(title, 20, 20);
-
-            // Filters info
-            doc.setFontSize(10);
-            let filterInfo = `Generated on: ${new Date().toLocaleDateString()}`;
-            if (subjectFilter) {
-                const subjects = getSubjects();
-                const subject = subjects.find(s => s.id === subjectFilter);
-                filterInfo += ` | Subject: ${subject ? subject.name : 'Unknown'}`;
-            }
-            if (dateFrom || dateTo) {
-                filterInfo += ` | Date Range: ${dateFrom || 'Start'} to ${dateTo || 'End'}`;
-            }
-            doc.text(filterInfo, 20, 30);
-
             const students = getStudents();
             const subjects = getSubjects();
-            let attendance = getAttendanceArray(); // Use array version
+            let attendance = getAttendanceArray();
 
-            // Apply same filters as summary
+            // Apply filters
             if (subjectFilter) {
                 attendance = attendance.filter(a => a.subjectId === subjectFilter);
             }
@@ -1133,86 +1107,219 @@
                 attendance = attendance.filter(a => a.date <= dateTo);
             }
 
-            let yPos = 50;
-
             if (type === 'student') {
-                // Student-wise PDF with detailed absent dates
-                doc.setFontSize(12);
-                doc.text('Student-wise Attendance Report', 20, yPos);
-                yPos += 15;
-
-                doc.setFontSize(10);
-                doc.text('Roll | Name | Present | Absent | Total | % | Absent Dates', 20, yPos);
-                yPos += 10;
-
-                students.forEach(student => {
-                    let present = 0, absent = 0;
-                    const absentDates = [];
-
-                    attendance.forEach(session => {
-                        const record = session.records.find(r => r.studentId === student.id);
-                        if (record) {
-                            if (record.status === 'present') {
-                                present++;
-                            } else {
-                                absent++;
-                                const subject = subjects.find(s => s.id === session.subjectId);
-                                absentDates.push(`${session.date} (${subject ? subject.name : 'Unknown'})`);
-                            }
-                        }
-                    });
-
-                    const total = present + absent;
-                    const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
-
-                    // Main student info
-                    doc.text(`${student.roll} | ${student.name} | ${present} | ${absent} | ${total} | ${percentage}%`, 20, yPos);
-                    yPos += 8;
-
-                    // Absent dates (if any)
-                    if (absentDates.length > 0) {
-                        doc.setFontSize(8);
-                        const absentText = `Absent on: ${absentDates.join(', ')}`;
-                        const splitText = doc.splitTextToSize(absentText, 170);
-                        doc.text(splitText, 25, yPos);
-                        yPos += splitText.length * 4;
-                        doc.setFontSize(10);
-                    }
-
-                    yPos += 3;
-
-                    if (yPos > 250) {
-                        doc.addPage();
-                        yPos = 20;
-                    }
-                });
+                generateStudentPDF(doc, students, subjects, attendance, subjectFilter);
             } else {
-                // Subject-wise PDF
-                doc.setFontSize(12);
-                doc.text('Subject-wise Attendance Report', 20, yPos);
-                yPos += 15;
-
-                doc.setFontSize(10);
-                doc.text('Subject | Date | Present | Absent | Total', 20, yPos);
-                yPos += 10;
-
-                attendance.forEach(session => {
-                    const subject = subjects.find(s => s.id === session.subjectId);
-                    const present = session.records.filter(r => r.status === 'present').length;
-                    const absent = session.records.filter(r => r.status === 'absent').length;
-
-                    doc.text(`${subject ? subject.name : 'Unknown'} | ${session.date} | ${present} | ${absent} | ${present + absent}`, 20, yPos);
-                    yPos += 8;
-
-                    if (yPos > 250) {
-                        doc.addPage();
-                        yPos = 20;
-                    }
-                });
+                generateSubjectPDF(doc, students, subjects, attendance, subjectFilter);
             }
 
-            const filename = `attendance-${type}-${new Date().toISOString().split('T')[0]}.pdf`;
-            doc.save(filename);
+            // Save the PDF
+            const fileName = type === 'student' ? 'Student_Attendance_Report.pdf' : 'Subject_Attendance_Report.pdf';
+            doc.save(fileName);
+        }
+
+        function generateStudentPDF(doc, students, subjects, attendance, subjectFilter) {
+            // Header
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('Student Attendance Report', 105, 20, { align: 'center' });
+
+            // Date and filters
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const dateGenerated = new Date().toLocaleDateString();
+            doc.text(`Generated on: ${dateGenerated}`, 20, 35);
+
+            if (subjectFilter) {
+                const subject = subjects.find(s => s.id === subjectFilter);
+                doc.text(`Subject: ${subject ? subject.name : 'Unknown'}`, 20, 42);
+            }
+
+            let yPos = 55;
+
+            // Sort students by roll number
+            const sortedStudents = [...students].sort((a, b) => a.roll.localeCompare(b.roll));
+
+            sortedStudents.forEach((student, index) => {
+                // Check if we need a new page
+                if (yPos > 250) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                let present = 0, absent = 0;
+                const absentDetails = [];
+
+                // Group attendance by date
+                const attendanceByDate = {};
+                attendance.forEach(session => {
+                    const record = session.records.find(r => r.studentId === student.id);
+                    if (record) {
+                        if (!attendanceByDate[session.date]) {
+                            attendanceByDate[session.date] = [];
+                        }
+                        const subject = subjects.find(s => s.id === session.subjectId);
+                        const lectureInfo = session.lectureNumber ? `Lecture ${session.lectureNumber}` : '';
+                        attendanceByDate[session.date].push({
+                            subject: subject ? subject.name : 'Unknown',
+                            lecture: lectureInfo,
+                            status: record.status
+                        });
+
+                        if (record.status === 'present') {
+                            present++;
+                        } else {
+                            absent++;
+                        }
+                    }
+                });
+
+                const total = present + absent;
+                const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
+
+                // Student header
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text(`${student.roll} - ${student.name}`, 20, yPos);
+
+                // Statistics
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.text(`Present: ${present} | Absent: ${absent} | Total: ${total} | Attendance: ${percentage}%`, 20, yPos + 8);
+                yPos += 18;
+
+                // Absent dates details
+                if (absent > 0) {
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Absent Details:', 25, yPos);
+                    yPos += 8;
+                    doc.setFont(undefined, 'normal');
+
+                    Object.keys(attendanceByDate).sort().forEach(date => {
+                        const dayAttendance = attendanceByDate[date];
+                        const absentSessions = dayAttendance.filter(session => session.status === 'absent');
+
+                        if (absentSessions.length > 0) {
+                            doc.text(`• ${date}:`, 30, yPos);
+                            yPos += 6;
+
+                            absentSessions.forEach(session => {
+                                doc.text(`  - ${session.subject} ${session.lecture}`, 35, yPos);
+                                yPos += 5;
+                            });
+                            yPos += 3;
+                        }
+                    });
+                } else {
+                    doc.setFont(undefined, 'italic');
+                    doc.text('No absences recorded', 25, yPos);
+                    yPos += 8;
+                }
+
+                yPos += 10; // Space between students
+            });
+        }
+
+        function generateSubjectPDF(doc, students, subjects, attendance, subjectFilter) {
+            // Header
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('Subject-wise Attendance Report', 105, 20, { align: 'center' });
+
+            // Date and filters
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const dateGenerated = new Date().toLocaleDateString();
+            doc.text(`Generated on: ${dateGenerated}`, 20, 35);
+
+            let yPos = 50;
+
+            // Group attendance by date and subject
+            const attendanceByDateSubject = {};
+            attendance.forEach(session => {
+                const key = `${session.date}_${session.subjectId}_${session.lectureNumber || 1}`;
+                attendanceByDateSubject[key] = session;
+            });
+
+            // Sort by date, then subject
+            const sortedKeys = Object.keys(attendanceByDateSubject).sort();
+
+            sortedKeys.forEach(key => {
+                const session = attendanceByDateSubject[key];
+                const subject = subjects.find(s => s.id === session.subjectId);
+                const subjectName = subject ? subject.name : 'Unknown';
+                const lectureInfo = session.lectureNumber ? `${session.lectureNumber}${getOrdinalSuffix(session.lectureNumber)} Lecture` : '';
+
+                // Check if we need a new page
+                if (yPos > 220) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                // Date header
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text(`${session.date} - ${subjectName} (${lectureInfo})`, 20, yPos);
+                yPos += 10;
+
+                const presentStudents = [];
+                const absentStudents = [];
+
+                session.records.forEach(record => {
+                    const student = students.find(s => s.id === record.studentId);
+                    if (student) {
+                        if (record.status === 'present') {
+                            presentStudents.push(student);
+                        } else {
+                            absentStudents.push(student);
+                        }
+                    }
+                });
+
+                // Sort students by roll number
+                presentStudents.sort((a, b) => a.roll.localeCompare(b.roll));
+                absentStudents.sort((a, b) => a.roll.localeCompare(b.roll));
+
+                // Statistics
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.text(`Present: ${presentStudents.length} | Absent: ${absentStudents.length} | Total: ${presentStudents.length + absentStudents.length}`, 20, yPos);
+                yPos += 10;
+
+                // Present students
+                if (presentStudents.length > 0) {
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Present Students:', 20, yPos);
+                    yPos += 6;
+                    doc.setFont(undefined, 'normal');
+
+                    presentStudents.forEach(student => {
+                        doc.text(`• ${student.roll} - ${student.name}`, 25, yPos);
+                        yPos += 5;
+                    });
+                    yPos += 5;
+                }
+
+                // Absent students
+                if (absentStudents.length > 0) {
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Absent Students:', 20, yPos);
+                    yPos += 6;
+                    doc.setFont(undefined, 'normal');
+
+                    absentStudents.forEach(student => {
+                        doc.text(`• ${student.roll} - ${student.name}`, 25, yPos);
+                        yPos += 5;
+                    });
+                    yPos += 5;
+                } else {
+                    doc.setFont(undefined, 'italic');
+                    doc.text('No absent students', 25, yPos);
+                    yPos += 8;
+                }
+
+                yPos += 10; // Space between sessions
+            });
         }        // Manage Tab Functions
         function loadManageTab() {
             loadStudentsList();
