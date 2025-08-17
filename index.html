@@ -75,6 +75,16 @@
             background: #e53935;
         }
 
+        .lecture-btn.selected {
+            background: #2196f3 !important;
+            color: white !important;
+        }
+
+        .track-lecture-btn.selected {
+            background: #2196f3 !important;
+            color: white !important;
+        }
+
         .btn:active {
             opacity: 0.8;
         }
@@ -237,15 +247,43 @@
                 </select>
                 <input type="date" id="attendance-date" class="input">
             </div>
+
+            <!-- Lecture Selection -->
+            <div style="margin-bottom: 20px;">
+                <div style="font-size: 16px; font-weight: 500; margin-bottom: 10px; color: #333;">Select Lecture:</div>
+                <div class="lecture-selection" style="display: flex; gap: 8px;">
+                    <button class="btn lecture-btn" id="lecture-1" data-lecture="1"
+                        style="flex: 1; background: #e0e0e0; color: #333;">
+                        1st Lecture
+                    </button>
+                    <button class="btn lecture-btn" id="lecture-2" data-lecture="2"
+                        style="flex: 1; background: #e0e0e0; color: #333;">
+                        2nd Lecture
+                    </button>
+                    <button class="btn lecture-btn" id="lecture-3" data-lecture="3"
+                        style="flex: 1; background: #e0e0e0; color: #333;">
+                        3rd Lecture
+                    </button>
+                </div>
+                <div id="lecture-info" style="margin-top: 10px; font-size: 14px; color: #666; text-align: center;">
+                    Select lecture number first
+                </div>
+            </div>
+
             <div id="attendance-student-card"
                 style="text-align: center; background: #fff; padding: 24px; border-radius: 12px; margin: 20px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                >
                 <div id="student-info" style="margin-bottom: 20px;">
                     <div style="font-size: 24px; font-weight: 500;" id="student-roll">Roll: -</div>
                     <div style="font-size: 20px; color: #666;" id="student-name">Name: -</div>
                 </div>
                 <div class="attendance-btns">
-                    <button class="btn present" id="mark-present">Present</button>
-                    <button class="btn absent" id="mark-absent">Absent</button>
+                    <button class="btn" id="start-attendance"
+                        style="background: #2196f3; margin-bottom: 16px; display: block; width: 100%;">
+                        🚀 Start Attendance
+                    </button>
+                    <button class="btn present" id="mark-present" style="display: none;">Present</button>
+                    <button class="btn absent" id="mark-absent" style="display: none;">Absent</button>
                 </div>
                 <div style="margin-top: 20px;">
                     <button class="action-btn" id="finish-attendance"
@@ -266,7 +304,27 @@
                     <option value="">Select Subject</option>
                 </select>
                 <input type="date" id="track-date" class="input">
-                <button class="action-btn" id="load-attendance">Load Attendance</button>
+
+                <!-- Lecture Selection for Track Tab -->
+                <div style="margin-top: 10px;">
+                    <div style="font-size: 14px; margin-bottom: 8px; color: #333;">Lecture:</div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn track-lecture-btn" id="track-lecture-1" data-lecture="1"
+                            style="flex: 1; background: #e0e0e0; color: #333; font-size: 14px; padding: 8px;">
+                            1st
+                        </button>
+                        <button class="btn track-lecture-btn" id="track-lecture-2" data-lecture="2"
+                            style="flex: 1; background: #e0e0e0; color: #333; font-size: 14px; padding: 8px;">
+                            2nd
+                        </button>
+                        <button class="btn track-lecture-btn" id="track-lecture-3" data-lecture="3"
+                            style="flex: 1; background: #e0e0e0; color: #333; font-size: 14px; padding: 8px;">
+                            3rd
+                        </button>
+                    </div>
+                </div>
+
+                <button class="action-btn" id="load-attendance" style="margin-top: 10px;">Load Attendance</button>
             </div>
             <div id="track-list"></div>
         </div>
@@ -576,12 +634,18 @@
         }
 
         function getAttendance() {
-            return JSON.parse(localStorage.getItem('attendance') || '[]');
+            return JSON.parse(localStorage.getItem('attendance') || '{}');
         }
 
         function setAttendance(attendance) {
             localStorage.setItem('attendance', JSON.stringify(attendance));
             // No auto-sync for attendance - manual sync only
+        }
+
+        // Helper function to get attendance as array for existing functions
+        function getAttendanceArray() {
+            const attendanceObj = getAttendance();
+            return Object.values(attendanceObj);
         }
 
         // Manual sync function for "Done" button
@@ -604,15 +668,29 @@
         function resetAttendanceSession() {
             currentAttendanceSession = null;
             currentStudentIndex = 0;
+            selectedLecture = null;
+
             document.getElementById('finish-attendance').style.display = 'none';
+            document.getElementById('start-attendance').style.display = 'block';
+            document.getElementById('mark-present').style.display = 'none';
+            document.getElementById('mark-absent').style.display = 'none';
             document.getElementById('student-roll').textContent = 'Roll: -';
             document.getElementById('student-name').textContent = 'Name: -';
-            document.getElementById('attendance-progress').textContent = 'Attendance saved locally!';
+            document.getElementById('attendance-progress').textContent = 'Ready to take attendance';
+
+            // Reset lecture selection
+            document.querySelectorAll('.lecture-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.getElementById('lecture-info').textContent = 'Select lecture number first';
+            document.getElementById('lecture-info').style.color = '#666';
         }
 
         // Global variables
         let currentStudentIndex = 0;
         let currentAttendanceSession = null;
+        let selectedLecture = null;
+        let selectedTrackLecture = null;
 
         // Tab management
         function switchTab(tabName) {
@@ -633,6 +711,7 @@
         function loadAttendanceTab() {
             loadSubjectOptions('attendance-subject');
             document.getElementById('attendance-date').value = new Date().toISOString().split('T')[0];
+            resetAttendanceSession(); // Initialize the UI properly
         }
 
         function loadSubjectOptions(selectId) {
@@ -646,6 +725,95 @@
             });
         }
 
+        // Lecture selection function
+        function selectLecture(lectureNumber) {
+            selectedLecture = lectureNumber;
+
+            // Update UI - remove selected class from all buttons
+            document.querySelectorAll('.lecture-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+
+            // Add selected class to clicked button
+            document.getElementById(`lecture-${lectureNumber}`).classList.add('selected');
+
+            // Update lecture info
+            const subjectId = document.getElementById('attendance-subject').value;
+            const date = document.getElementById('attendance-date').value;
+
+            if (subjectId && date) {
+                updateLectureInfo(subjectId, date, lectureNumber);
+            } else {
+                document.getElementById('lecture-info').textContent = `${lectureNumber}${getOrdinalSuffix(lectureNumber)} lecture selected`;
+            }
+        }
+
+        // Helper function for ordinal numbers (1st, 2nd, 3rd)
+        function getOrdinalSuffix(number) {
+            const lastDigit = number % 10;
+            const lastTwoDigits = number % 100;
+
+            if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
+                return 'th';
+            }
+
+            switch (lastDigit) {
+                case 1: return 'st';
+                case 2: return 'nd';
+                case 3: return 'rd';
+                default: return 'th';
+            }
+        }
+
+        // Function to update lecture info and check for existing attendance
+        function updateLectureInfo(subjectId, date, lectureNumber) {
+            const subjects = getSubjects();
+            const subject = subjects.find(s => s.id === subjectId);
+            const subjectName = subject ? subject.name : 'Unknown';
+
+            // Calculate total lecture count for this subject (semester total)
+            const attendance = getAttendance();
+            let totalSemesterLectures = 0;
+
+            // Count all lectures for this subject across all dates (semester total)
+            Object.keys(attendance).forEach(key => {
+                const [sessionDate, sessionSubjectId, sessionLecture] = key.split('_');
+                if (sessionSubjectId === subjectId && sessionDate < date) {
+                    totalSemesterLectures++;
+                }
+            });
+
+            // Count lectures on this specific date (to show which lecture of the day this will be)
+            let lecturesThisDay = 0;
+            Object.keys(attendance).forEach(key => {
+                const [sessionDate, sessionSubjectId, sessionLecture] = key.split('_');
+                if (sessionSubjectId === subjectId && sessionDate === date && parseInt(sessionLecture) < lectureNumber) {
+                    lecturesThisDay++;
+                }
+            });
+
+            // Check if this specific lecture already exists
+            const key = `${date}_${subjectId}_${lectureNumber}`;
+            const exists = attendance[key];
+
+            let infoText = `${subjectName} - ${lectureNumber}${getOrdinalSuffix(lectureNumber)} lecture of the day`;
+
+            // Show semester count if there are previous lectures
+            const upcomingSemesterLecture = totalSemesterLectures + lecturesThisDay + 1;
+            if (totalSemesterLectures > 0 || lecturesThisDay > 0) {
+                infoText += ` (${upcomingSemesterLecture}${getOrdinalSuffix(upcomingSemesterLecture)} lecture this semester)`;
+            }
+
+            if (exists) {
+                infoText += ' ⚠️ Already taken';
+                document.getElementById('lecture-info').style.color = '#e53935';
+            } else {
+                document.getElementById('lecture-info').style.color = '#43a047';
+            }
+
+            document.getElementById('lecture-info').textContent = infoText;
+        }
+
         function startAttendance() {
             const subjectId = document.getElementById('attendance-subject').value;
             const date = document.getElementById('attendance-date').value;
@@ -655,18 +823,40 @@
                 return;
             }
 
+            if (!selectedLecture) {
+                alert('Please select lecture number (1st, 2nd, or 3rd)');
+                return;
+            }
+
             const students = getStudents();
             if (students.length === 0) {
                 alert('No students found. Add students first.');
                 return;
             }
 
+            // Check if attendance already exists for this date, subject, and lecture
+            const existingAttendance = getAttendance();
+            const key = `${date}_${subjectId}_${selectedLecture}`;
+
+            if (existingAttendance[key]) {
+                if (!confirm(`Attendance already exists for ${selectedLecture}${getOrdinalSuffix(selectedLecture)} lecture of this subject on this date. Do you want to overwrite it?`)) {
+                    return;
+                }
+            }
+
             currentAttendanceSession = {
                 subjectId: subjectId,
                 date: date,
+                lectureNumber: selectedLecture,
                 records: []
             };
             currentStudentIndex = 0;
+
+            // Hide start button and show attendance buttons
+            document.getElementById('start-attendance').style.display = 'none';
+            document.getElementById('mark-present').style.display = 'inline-block';
+            document.getElementById('mark-absent').style.display = 'inline-block';
+
             showCurrentStudent();
         }
 
@@ -686,7 +876,7 @@
 
         function markAttendance(status) {
             if (!currentAttendanceSession) {
-                startAttendance();
+                alert('Please click "Start Attendance" first');
                 return;
             }
 
@@ -706,12 +896,16 @@
 
         function finishAttendance() {
             const attendance = getAttendance();
-            attendance.push({
+            const key = `${currentAttendanceSession.date}_${currentAttendanceSession.subjectId}_${currentAttendanceSession.lectureNumber}`;
+
+            // Store attendance with unique key (date_subject_lecture) to prevent duplicates
+            attendance[key] = {
                 id: Date.now(),
                 subjectId: currentAttendanceSession.subjectId,
                 date: currentAttendanceSession.date,
+                lectureNumber: currentAttendanceSession.lectureNumber,
                 records: currentAttendanceSession.records
-            });
+            };
             setAttendance(attendance);
 
             // Show Done button
@@ -719,7 +913,22 @@
             document.getElementById('student-roll').textContent = 'Attendance Complete!';
             document.getElementById('student-name').textContent = 'Click "Done" to sync data';
             document.getElementById('attendance-progress').textContent = 'All students marked';
-        }        // Track Tab Functions
+        }
+
+        // Track lecture selection function
+        function selectTrackLecture(lectureNumber) {
+            selectedTrackLecture = lectureNumber;
+
+            // Update UI - remove selected class from all track lecture buttons
+            document.querySelectorAll('.track-lecture-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+
+            // Add selected class to clicked button
+            document.getElementById(`track-lecture-${lectureNumber}`).classList.add('selected');
+        }
+
+        // Track Tab Functions
         function loadTrackTab() {
             loadSubjectOptions('track-subject');
         }
@@ -733,8 +942,14 @@
                 return;
             }
 
+            if (!selectedTrackLecture) {
+                alert('Please select lecture number (1st, 2nd, or 3rd)');
+                return;
+            }
+
             const attendance = getAttendance();
-            const session = attendance.find(a => a.subjectId === subjectId && a.date === date);
+            const key = `${date}_${subjectId}_${selectedTrackLecture}`;
+            const session = attendance[key];
 
             const trackList = document.getElementById('track-list');
             trackList.innerHTML = '';
@@ -784,7 +999,7 @@
 
             const students = getStudents();
             const subjects = getSubjects();
-            let attendance = getAttendance();
+            let attendance = getAttendanceArray(); // Use array version
 
             // Apply filters
             if (subjectFilter) {
@@ -896,7 +1111,7 @@
 
             const students = getStudents();
             const subjects = getSubjects();
-            let attendance = getAttendance();
+            let attendance = getAttendanceArray(); // Use array version
 
             // Apply same filters as summary
             if (subjectFilter) {
@@ -996,23 +1211,16 @@
         }
 
         function addStudent() {
-            console.log('addStudent function called'); // Debug log
-
             const rollElement = document.getElementById('new-student-roll');
             const nameElement = document.getElementById('new-student-name');
 
-            console.log('Roll element:', rollElement); // Debug log
-            console.log('Name element:', nameElement); // Debug log
-
             if (!rollElement || !nameElement) {
-                console.error('Could not find input elements');
                 alert('Error: Could not find input fields. Make sure you are on the Manage tab.');
                 return;
             }
 
             const roll = rollElement.value.trim();
-            const name = nameElement.value.trim(); console.log('Roll value:', roll); // Debug log
-            console.log('Name value:', name); // Debug log
+            const name = nameElement.value.trim();
 
             if (!roll || !name) {
                 alert('Please enter both roll number and name');
@@ -1020,7 +1228,6 @@
             }
 
             const students = getStudents();
-            console.log('Current students:', students); // Debug log
 
             if (students.find(s => s.roll === roll)) {
                 alert('Student with this roll number already exists');
@@ -1034,14 +1241,11 @@
             };
 
             students.push(newStudent);
-            console.log('Adding student:', newStudent); // Debug log
 
             setStudents(students);
             rollElement.value = '';
             nameElement.value = '';
             loadStudentsList();
-
-            console.log('Student added successfully'); // Debug log
         }
 
         function deleteStudent(id) {
@@ -1170,11 +1374,41 @@
                 }
             });
 
+            // Lecture selection buttons
+            document.getElementById('lecture-1').addEventListener('click', () => selectLecture(1));
+            document.getElementById('lecture-2').addEventListener('click', () => selectLecture(2));
+            document.getElementById('lecture-3').addEventListener('click', () => selectLecture(3));
+
+            // Subject/date change listeners
+            document.getElementById('attendance-subject').addEventListener('change', () => {
+                if (selectedLecture) {
+                    const subjectId = document.getElementById('attendance-subject').value;
+                    const date = document.getElementById('attendance-date').value;
+                    if (subjectId && date) {
+                        updateLectureInfo(subjectId, date, selectedLecture);
+                    }
+                }
+            });
+
+            document.getElementById('attendance-date').addEventListener('change', () => {
+                if (selectedLecture) {
+                    const subjectId = document.getElementById('attendance-subject').value;
+                    const date = document.getElementById('attendance-date').value;
+                    if (subjectId && date) {
+                        updateLectureInfo(subjectId, date, selectedLecture);
+                    }
+                }
+            });
+
+            document.getElementById('start-attendance').addEventListener('click', startAttendance);
             document.getElementById('mark-present').addEventListener('click', () => markAttendance('present'));
             document.getElementById('mark-absent').addEventListener('click', () => markAttendance('absent'));
             document.getElementById('finish-attendance').addEventListener('click', finishAndSync);
 
             // Track tab
+            document.getElementById('track-lecture-1').addEventListener('click', () => selectTrackLecture(1));
+            document.getElementById('track-lecture-2').addEventListener('click', () => selectTrackLecture(2));
+            document.getElementById('track-lecture-3').addEventListener('click', () => selectTrackLecture(3));
             document.getElementById('load-attendance').addEventListener('click', loadAttendanceForEdit);
 
             // Summary tab
@@ -1182,10 +1416,7 @@
             document.getElementById('download-pdf').addEventListener('click', downloadPDF);
 
             // Manage tab
-            document.getElementById('add-student').addEventListener('click', function () {
-                console.log('Add student button clicked'); // Debug log
-                addStudent();
-            });
+            document.getElementById('add-student').addEventListener('click', addStudent);
             document.getElementById('add-subject').addEventListener('click', addSubject);
 
             // Enter key support
