@@ -694,6 +694,11 @@
             return Object.values(attendanceObj);
         }
 
+        // Helper function to find subject by ID (handles type conversion)
+        function findSubjectById(subjects, subjectId) {
+            return subjects.find(s => String(s.id) === String(subjectId));
+        }
+
         // Manual sync function for "Done" button
         function finishAndSync() {
             // Always complete the attendance session first
@@ -765,24 +770,14 @@
             const select = document.getElementById(selectId);
             const subjects = getSubjects();
 
-            // Debug logging for subject loading
-            console.log('=== DEBUG loadSubjectOptions ===');
-            console.log('Loading subjects for:', selectId);
-            console.log('Subjects data:', subjects);
-            console.log('Subject IDs and types:', subjects.map(s => ({ id: s.id, name: s.name, type: typeof s.id })));
-            console.log('================================');
-
             select.innerHTML = '<option value="">Select Subject</option>';
             subjects.forEach(subject => {
                 const option = document.createElement('option');
                 option.value = subject.id;
                 option.textContent = subject.name;
-                console.log('Adding option:', { value: option.value, text: option.textContent, type: typeof option.value });
                 select.appendChild(option);
             });
-        }
-
-        // Lecture selection function
+        }        // Lecture selection function
         function selectLecture(lectureNumber) {
             selectedLecture = lectureNumber;
 
@@ -825,24 +820,9 @@
         // Function to update lecture info and check for existing attendance
         function updateLectureInfo(subjectId, date, lectureNumber) {
             const subjects = getSubjects();
-            const subject = subjects.find(s => String(s.id) === String(subjectId)); // Force string comparison
+            const subject = findSubjectById(subjects, subjectId);
 
-            // Debug logging for "Unknown" subject issue
-            console.log('=== DEBUG updateLectureInfo ===');
-            console.log('Looking for subjectId:', subjectId, 'Type:', typeof subjectId);
-            console.log('Available subjects:', subjects);
-            console.log('Available subject IDs:', subjects.map(s => ({ id: s.id, name: s.name, type: typeof s.id })));
-            console.log('Found subject:', subject);
-            console.log('Subject comparison results:');
-            subjects.forEach(s => {
-                console.log(`  ${s.id} === ${subjectId}?`, s.id === subjectId, `(${typeof s.id} vs ${typeof subjectId})`);
-                console.log(`  "${s.id}" === "${subjectId}"?`, String(s.id) === String(subjectId));
-            });
-            console.log('================================');
-
-            const subjectName = subject ? subject.name : 'Unknown';
-
-            // Calculate total lecture count for this subject (semester total)
+            const subjectName = subject ? subject.name : 'Unknown';            // Calculate total lecture count for this subject (semester total)
             const attendance = getAttendance();
             let totalSemesterLectures = 0;
 
@@ -1369,10 +1349,8 @@
             let pageNum = 1;
             let totalPages = Math.ceil(students.length / 8) + 1; // Estimate
 
-            const subjectName = subjectFilter ? (subjects.find(s => s.id === subjectFilter)?.name || 'Unknown Subject') : 'All Subjects';
-            const subtitle = `Student-wise Report - ${subjectName}`;
-
-            let yPos = addPDFHeader(doc, 'ATTENDANCE REPORT', subtitle, pageNum, totalPages);
+            const subjectName = subjectFilter ? (subjects.find(s => String(s.id) === String(subjectFilter))?.name || 'Unknown Subject') : 'All Subjects';
+            const subtitle = `Student-wise Report - ${subjectName}`; let yPos = addPDFHeader(doc, 'ATTENDANCE REPORT', subtitle, pageNum, totalPages);
 
             // Summary section
             doc.setFillColor(248, 249, 250);
@@ -1631,10 +1609,8 @@
             let pageNum = 1;
             let totalPages = Math.ceil(attendance.length / 3) + 1; // Estimate
 
-            const subjectName = subjectFilter ? (subjects.find(s => s.id === subjectFilter)?.name || 'Unknown Subject') : 'All Subjects';
-            const subtitle = `Subject-wise Report - ${subjectName}`;
-
-            let yPos = addPDFHeader(doc, 'SUBJECT ATTENDANCE REPORT', subtitle, pageNum, totalPages);
+            const subjectName = subjectFilter ? (subjects.find(s => String(s.id) === String(subjectFilter))?.name || 'Unknown Subject') : 'All Subjects';
+            const subtitle = `Subject-wise Report - ${subjectName}`; let yPos = addPDFHeader(doc, 'SUBJECT ATTENDANCE REPORT', subtitle, pageNum, totalPages);
 
             // Summary section
             doc.setFillColor(248, 249, 250);
@@ -2263,13 +2239,6 @@
                 if (selectedLecture) {
                     const subjectId = document.getElementById('attendance-subject').value;
                     const date = document.getElementById('attendance-date').value;
-
-                    // Debug logging for date selection
-                    console.log('=== DEBUG Date Selection ===');
-                    console.log('Selected subjectId:', subjectId, 'Type:', typeof subjectId);
-                    console.log('Selected date:', date);
-                    console.log('Selected lecture:', selectedLecture);
-                    console.log('============================');
 
                     if (subjectId && date) {
                         updateLectureInfo(subjectId, date, selectedLecture);
