@@ -104,26 +104,33 @@
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 600;
             color: var(--text-primary);
+            font-size: 14px;
         }
 
         input,
         select,
         textarea {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid var(--divider-color);
+            padding: 8px 12px;
+            border: 1px solid var(--divider-color);
             border-radius: var(--border-radius-small);
-            font-size: 16px;
+            font-size: 14px;
             transition: var(--transition);
             background: var(--surface-color);
+        }
+
+        textarea {
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 80px;
         }
 
         input:focus,
@@ -131,17 +138,17 @@
         textarea:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
         }
 
         .btn {
             background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 8px 16px;
             border-radius: var(--border-radius-small);
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             transition: var(--transition);
             box-shadow: var(--shadow-light);
@@ -179,8 +186,8 @@
         .student-list {
             background: var(--surface-color);
             border-radius: var(--border-radius);
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 15px;
+            margin-bottom: 15px;
             box-shadow: var(--shadow-light);
             border: 1px solid var(--divider-color);
         }
@@ -189,7 +196,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
+            padding: 8px 0;
             border-bottom: 1px solid var(--divider-color);
             transition: var(--transition);
         }
@@ -200,9 +207,9 @@
 
         .student-item:hover {
             background: var(--surface-dark);
-            margin: 0 -20px;
-            padding-left: 20px;
-            padding-right: 20px;
+            margin: 0 -15px;
+            padding-left: 15px;
+            padding-right: 15px;
             border-radius: var(--border-radius-small);
         }
 
@@ -222,13 +229,14 @@
         }
 
         .attendance-btn {
-            padding: 8px 16px;
+            padding: 6px 12px;
             border: none;
             border-radius: var(--border-radius-small);
             cursor: pointer;
             font-weight: 600;
             transition: var(--transition);
-            margin-left: 8px;
+            margin-left: 6px;
+            font-size: 12px;
         }
 
         .btn-present {
@@ -250,16 +258,17 @@
         }
 
         .lecture-btn {
-            padding: 8px 16px;
+            padding: 6px 12px;
             border: none;
             border-radius: var(--border-radius-small);
             cursor: pointer;
             font-weight: 600;
             transition: var(--transition);
-            margin: 4px;
+            margin: 3px;
             background: #e0e0e0;
             color: #333;
             flex: 1;
+            font-size: 12px;
         }
 
         .lecture-btn.selected {
@@ -275,15 +284,15 @@
 
         .lecture-selection {
             display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
+            gap: 6px;
+            margin-bottom: 12px;
         }
 
         .summary-card {
             background: var(--surface-color);
-            padding: 20px;
+            padding: 15px;
             border-radius: var(--border-radius);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             box-shadow: var(--shadow-light);
             border-left: 4px solid var(--primary-color);
         }
@@ -422,66 +431,6 @@
             transition: width 0.3s ease;
         }
 
-        .attendance-summary {
-            margin-top: 20px;
-        }
-
-        .class-summary {
-            background: var(--surface-color);
-            border-radius: var(--border-radius);
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-light);
-            border-left: 4px solid var(--primary-color);
-        }
-
-        .class-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .class-title {
-            font-size: 1.1em;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .class-date {
-            font-size: 0.9em;
-            color: var(--text-secondary);
-        }
-
-        .absent-students {
-            background: #fff3e0;
-            border: 1px solid var(--secondary-color);
-            border-radius: var(--border-radius-small);
-            padding: 15px;
-            margin-top: 15px;
-        }
-
-        .absent-students h4 {
-            color: var(--secondary-dark);
-            margin-bottom: 10px;
-            font-size: 1em;
-        }
-
-        .absent-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .absent-roll {
-            background: var(--secondary-color);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.85em;
-            font-weight: 600;
-        }
-
         .export-options {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -505,6 +454,50 @@
         .danger-zone .btn {
             margin-right: 10px;
             margin-bottom: 10px;
+        }
+
+        .bulk-import-section {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 2px dashed var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin: 20px 0;
+            transition: var(--transition);
+        }
+
+        .bulk-import-section:hover {
+            background: linear-gradient(135deg, #e3f2fd, #f8f9fa);
+            border-color: var(--primary-dark);
+        }
+
+        .enhanced-summary-card {
+            background: linear-gradient(145deg, var(--surface-color), #f8f9fa);
+            border: 1px solid var(--divider-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-medium);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .enhanced-summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+        }
+
+        .lecture-sequence-info {
+            background: rgba(33, 150, 243, 0.1);
+            border: 1px solid rgba(33, 150, 243, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-top: 8px;
+            font-size: 0.85em;
         }
 
         @media (max-width: 480px) {
@@ -543,37 +536,6 @@
                 font-size: 0.7em;
             }
         }
-
-        /* Tecno Camon 40 specific optimizations */
-        @media (max-width: 400px) and (max-height: 800px) {
-            .container {
-                padding: 10px;
-                padding-bottom: 80px;
-            }
-
-            .header {
-                padding: 15px 0;
-                margin-bottom: 20px;
-            }
-
-            .form-group {
-                margin-bottom: 15px;
-            }
-
-            input,
-            select,
-            textarea {
-                padding: 10px 12px;
-            }
-
-            .student-list {
-                padding: 15px;
-            }
-
-            .summary-card {
-                padding: 15px;
-            }
-        }
     </style>
 </head>
 
@@ -598,19 +560,12 @@
                 <input type="date" id="class-date">
             </div>
 
-            <!-- Lecture Selection -->
             <div class="form-group">
                 <label>Select Lecture:</label>
                 <div class="lecture-selection">
-                    <button class="lecture-btn" id="lecture-1" data-lecture="1">
-                        1st Lecture
-                    </button>
-                    <button class="lecture-btn" id="lecture-2" data-lecture="2">
-                        2nd Lecture
-                    </button>
-                    <button class="lecture-btn" id="lecture-3" data-lecture="3">
-                        3rd Lecture
-                    </button>
+                    <button class="lecture-btn" onclick="selectLecture(1)">1st Lecture</button>
+                    <button class="lecture-btn" onclick="selectLecture(2)">2nd Lecture</button>
+                    <button class="lecture-btn" onclick="selectLecture(3)">3rd Lecture</button>
                 </div>
                 <div id="lecture-info"
                     style="font-size: 14px; color: var(--text-secondary); text-align: center; margin-top: 8px;">
@@ -622,7 +577,7 @@
                 <!-- Students will be loaded here -->
             </div>
 
-            <button class="btn btn-success btn-block" id="save-attendance">
+            <button class="btn btn-success btn-block" onclick="saveAttendance()">
                 💾 Save Attendance
             </button>
 
@@ -646,48 +601,24 @@
         <!-- Summary Tab -->
         <div class="tab-content" id="summary">
             <div class="form-group">
-                <label for="summary-type">Summary Type:</label>
-                <select id="summary-type">
-                    <option value="student">Student-wise Summary</option>
-                    <option value="subject">Subject-wise Summary</option>
-                    <option value="specific-student">Specific Student Summary</option>
-                </select>
-            </div>
-
-            <!-- Specific Student Search -->
-            <div id="specific-student-section" class="form-group hidden"
-                style="background: var(--surface-dark); padding: 15px; border-radius: var(--border-radius-small);">
-                <label for="student-roll-search">Enter Roll Number:</label>
-                <input type="text" id="student-roll-search" placeholder="Enter roll number (e.g., 2024-CS-001)">
-                <button class="btn btn-secondary" onclick="generateSpecificStudentSummary()" style="margin-top: 10px;">
-                    🔍 Search Student
-                </button>
-            </div>
-
-            <div class="form-group">
                 <label for="summary-subject">Select Subject:</label>
                 <select id="summary-subject">
                     <option value="">All Subjects</option>
                 </select>
             </div>
 
-            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <label for="summary-date-from">From Date (Optional):</label>
-                    <input type="date" id="summary-date-from">
-                </div>
-                <div>
-                    <label for="summary-date-to">To Date (Optional):</label>
-                    <input type="date" id="summary-date-to">
-                </div>
-            </div>
-
-            <div class="export-options">
-                <button class="btn btn-success btn-block" id="generate-summary">
-                    � Generate Summary
+            <div class="export-options" style="grid-template-columns: 1fr; gap: 8px;">
+                <button class="btn btn-success btn-block" onclick="generateStudentSummary()">
+                    📊 Student Summary
                 </button>
-                <button class="btn btn-secondary" id="export-pdf">
-                    � Download PDF
+                <button class="btn btn-secondary btn-block" onclick="exportStudentPerformancePDF()">
+                    📄 Student Performance Report
+                </button>
+                <button class="btn btn-secondary btn-block" onclick="exportClassAttendancePDF()">
+                    📄 Class Attendance Report
+                </button>
+                <button class="btn btn-secondary btn-block" onclick="exportDetailedAnalysisPDF()">
+                    📄 Detailed Analysis Report
                 </button>
             </div>
 
@@ -710,8 +641,18 @@
                 <input type="text" id="student-roll" placeholder="Enter roll number">
             </div>
 
-            <button class="btn btn-success btn-block" id="add-student">
+            <button class="btn btn-success btn-block" onclick="addStudent()">
                 ➕ Add Student
+            </button>
+
+            <h4 style="margin: 20px 0 15px 0; color: var(--text-primary);">📄 Bulk Import Students</h4>
+            <div class="form-group">
+                <label for="bulk-import-text">Paste Excel data (Roll Number, Name):</label>
+                <textarea id="bulk-import-text" rows="6"
+                    placeholder="Example:&#10;2021-CS-001, John Doe&#10;2021-CS-002, Jane Smith&#10;2021-CS-003, Mike Johnson&#10;&#10;Or tab-separated from Excel copy-paste"></textarea>
+            </div>
+            <button class="btn btn-secondary btn-block" onclick="bulkImportStudents()">
+                📋 Import Students from Text
             </button>
 
             <h3 style="margin: 30px 0 20px 0; color: var(--text-primary);">📚 Manage Subjects</h3>
@@ -721,7 +662,7 @@
                 <input type="text" id="subject-name" placeholder="Enter subject name">
             </div>
 
-            <button class="btn btn-success btn-block" id="add-subject">
+            <button class="btn btn-success btn-block" onclick="addSubject()">
                 ➕ Add Subject
             </button>
 
@@ -736,20 +677,21 @@
             <h3 style="margin: 30px 0 20px 0; color: var(--text-primary);">💾 Backup & Import</h3>
 
             <div class="export-options">
-                <button class="btn btn-secondary" id="backup-data">
+                <button class="btn btn-secondary" onclick="exportData()">
                     💾 Backup Data
                 </button>
-                <button class="btn" id="import-data">
+                <button class="btn" onclick="importData()">
                     📁 Import Data
                 </button>
             </div>
-            <input type="file" id="import-file" accept=".json" style="display: none;">
+            <input type="file" id="import-file" accept=".json" style="display: none;"
+                onchange="handleFileImport(event)">
 
             <div class="danger-zone">
                 <h3>⚠️ Danger Zone</h3>
-                <button class="btn btn-danger" id="clear-attendance">Clear All Attendance</button>
-                <button class="btn btn-danger" id="clear-students">Clear All Students</button>
-                <button class="btn btn-danger" id="clear-subjects">Clear All Subjects</button>
+                <button class="btn btn-danger" onclick="clearAllAttendance()">Clear All Attendance</button>
+                <button class="btn btn-danger" onclick="clearAllStudents()">Clear All Students</button>
+                <button class="btn btn-danger" onclick="clearAllSubjects()">Clear All Subjects</button>
                 <div style="margin-top: 10px; font-size: 0.9em; color: var(--text-secondary);">
                     ⚠️ Warning: These actions cannot be undone. Export data first if needed.
                 </div>
@@ -758,27 +700,33 @@
             <div id="manage-message" class="message hidden"></div>
         </div>
     </div>
+
     <div class="tab-bar">
-        <div class="tab active" data-tab="attendance" onclick="switchTab('attendance')">
+        <div class="tab active" onclick="switchTab('attendance')">
             <span class="tab-icon">📝</span>
             <span class="tab-label">Take</span>
         </div>
-        <div class="tab" data-tab="track" onclick="switchTab('track')">
+        <div class="tab" onclick="switchTab('track')">
             <span class="tab-icon">📊</span>
             <span class="tab-label">Track</span>
         </div>
-        <div class="tab" data-tab="summary" onclick="switchTab('summary')">
+        <div class="tab" onclick="switchTab('summary')">
             <span class="tab-icon">📋</span>
             <span class="tab-label">Summary</span>
         </div>
-        <div class="tab" data-tab="manage" onclick="switchTab('manage')">
+        <div class="tab" onclick="switchTab('manage')">
             <span class="tab-icon">⚙️</span>
             <span class="tab-label">Manage</span>
         </div>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        // Data storage utilities
+        // Global variables
+        let selectedLecture = null;
+        let currentAttendance = {};
+
+        // Data storage utilities - ALL FUNCTIONS ARE AT GLOBAL SCOPE
         function getStudents() {
             return JSON.parse(localStorage.getItem('students') || '[]');
         }
@@ -803,6 +751,14 @@
             localStorage.setItem('attendance', JSON.stringify(attendance));
         }
 
+        // Show message helper
+        function showMessage(element, message, type = 'error') {
+            element.textContent = message;
+            element.className = `message ${type}`;
+            element.classList.remove('hidden');
+            setTimeout(() => element.classList.add('hidden'), 5000);
+        }
+
         // Tab functionality
         function switchTab(tabName) {
             // Hide all tab contents
@@ -819,17 +775,14 @@
             document.getElementById(tabName).classList.add('active');
 
             // Add active class to selected tab
-            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+            document.querySelector(`.tab:nth-child(${getTabIndex(tabName)})`).classList.add('active');
 
             // Load content for the selected tab
             if (tabName === 'attendance') {
                 loadSubjects('subject-select');
                 setTodayDate();
                 selectedLecture = null;
-                // Reset lecture selection UI
-                document.querySelectorAll('.lecture-btn').forEach(btn => {
-                    btn.classList.remove('selected');
-                });
+                document.querySelectorAll('.lecture-btn').forEach(btn => btn.classList.remove('selected'));
                 document.getElementById('lecture-info').textContent = 'Select lecture number first';
             } else if (tabName === 'track') {
                 loadSubjects('track-subject');
@@ -839,6 +792,11 @@
                 loadCurrentStudents();
                 loadCurrentSubjects();
             }
+        }
+
+        function getTabIndex(tabName) {
+            const tabs = ['attendance', 'track', 'summary', 'manage'];
+            return tabs.indexOf(tabName) + 1;
         }
 
         // Set today's date as default
@@ -859,6 +817,88 @@
                 option.textContent = subject.name;
                 select.appendChild(option);
             });
+        }
+
+        // Lecture selection
+        function selectLecture(lectureNumber) {
+            selectedLecture = lectureNumber;
+
+            // Update UI
+            document.querySelectorAll('.lecture-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+
+            // Update lecture info with enhanced tracking
+            const subjectId = document.getElementById('subject-select').value;
+            const date = document.getElementById('class-date').value;
+
+            if (subjectId && date) {
+                updateLectureInfo(subjectId, date, lectureNumber);
+            } else {
+                document.getElementById('lecture-info').textContent = `${lectureNumber}${getOrdinalSuffix(lectureNumber)} lecture selected`;
+            }
+
+            loadStudentsForAttendance();
+
+            // Show lecture sequence info
+            if (subjectId) {
+                showLectureSequence(subjectId, date);
+            }
+        }
+
+        // Show lecture sequence and patterns
+        function showLectureSequence(subjectId, date) {
+            const attendance = getAttendance();
+            const subjectAttendance = Object.values(attendance).filter(record => record.subjectId == subjectId);
+
+            if (subjectAttendance.length > 0) {
+                // Group by date to show lecture patterns
+                const dateGroups = {};
+                subjectAttendance.forEach(record => {
+                    if (!dateGroups[record.date]) {
+                        dateGroups[record.date] = [];
+                    }
+                    dateGroups[record.date].push(record.lectureNumber);
+                });
+
+                const lectureInfoDiv = document.getElementById('lecture-info');
+                const currentInfo = lectureInfoDiv.textContent;
+
+                // Show recent lecture pattern
+                const recentDates = Object.keys(dateGroups).sort().slice(-3);
+                if (recentDates.length > 0) {
+                    const patternInfo = recentDates.map(d => {
+                        const lectures = dateGroups[d].sort().join(', ');
+                        return `${new Date(d).toLocaleDateString()}: L${lectures}`;
+                    }).join(' | ');
+
+                    lectureInfoDiv.innerHTML = `${currentInfo}<br><small style="color: var(--text-secondary);">Recent: ${patternInfo}</small>`;
+                }
+            }
+        }
+
+        function getOrdinalSuffix(num) {
+            const suffixes = ['th', 'st', 'nd', 'rd'];
+            const v = num % 100;
+            return suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0];
+        }
+
+        function updateLectureInfo(subjectId, date, lectureNumber) {
+            const subjects = getSubjects();
+            const subject = subjects.find(s => s.id == subjectId);
+            const subjectName = subject ? subject.name : 'Unknown Subject';
+
+            const attendance = getAttendance();
+            const key = `${date}_${subjectId}_${lectureNumber}`;
+
+            if (attendance[key]) {
+                const totalStudents = Object.keys(attendance[key].records).length;
+                const presentStudents = Object.values(attendance[key].records).filter(status => status === 'present').length;
+                document.getElementById('lecture-info').textContent =
+                    `${lectureNumber}${getOrdinalSuffix(lectureNumber)} lecture - ${subjectName} (${presentStudents}/${totalStudents} present)`;
+            } else {
+                document.getElementById('lecture-info').textContent =
+                    `${lectureNumber}${getOrdinalSuffix(lectureNumber)} lecture - ${subjectName} (Not taken yet)`;
+            }
         }
 
         // Load students for attendance taking
@@ -884,12 +924,10 @@
                             <div class="student-roll">Roll: ${student.roll}</div>
                         </div>
                         <div>
-                            <button class="attendance-btn btn-present" 
-                                    onclick="markAttendance('${student.roll}', 'present')">
+                            <button class="attendance-btn btn-present" onclick="markAttendance('${student.roll}', 'present', this)">
                                 ✓ Present
                             </button>
-                            <button class="attendance-btn btn-absent" 
-                                    onclick="markAttendance('${student.roll}', 'absent')">
+                            <button class="attendance-btn btn-absent" onclick="markAttendance('${student.roll}', 'absent', this)">
                                 ✗ Absent
                             </button>
                         </div>
@@ -900,82 +938,25 @@
             studentAttendanceDiv.innerHTML = html;
         }
 
-        // Lecture selection function
-        function selectLecture(lectureNumber) {
-            selectedLecture = lectureNumber;
-
-            // Update UI - remove selected class from all buttons
-            document.querySelectorAll('.lecture-btn').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-
-            // Add selected class to clicked button
-            document.getElementById(`lecture-${lectureNumber}`).classList.add('selected');
-
-            // Update lecture info
-            const subjectId = document.getElementById('subject-select').value;
-            const date = document.getElementById('class-date').value;
-
-            if (subjectId && date) {
-                updateLectureInfo(subjectId, date, lectureNumber);
-            } else {
-                document.getElementById('lecture-info').textContent = `${lectureNumber}${getOrdinalSuffix(lectureNumber)} lecture selected`;
-            }
-
-            // Load students if subject is selected
-            loadStudentsForAttendance();
-        }
-
-        // Helper function to get ordinal suffix
-        function getOrdinalSuffix(num) {
-            const suffixes = ['th', 'st', 'nd', 'rd'];
-            const v = num % 100;
-            return suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0];
-        }
-
-        // Update lecture info
-        function updateLectureInfo(subjectId, date, lectureNumber) {
-            const subjects = getSubjects();
-            const subject = subjects.find(s => s.id == subjectId);
-            const subjectName = subject ? subject.name : 'Unknown Subject';
-
-            const attendance = getAttendance();
-            const key = `${date}_${subjectId}_${lectureNumber}`;
-
-            if (attendance[key]) {
-                const totalStudents = Object.keys(attendance[key].records).length;
-                const presentStudents = Object.values(attendance[key].records).filter(status => status === 'present').length;
-                document.getElementById('lecture-info').textContent =
-                    `${lectureNumber}${getOrdinalSuffix(lectureNumber)} lecture - ${subjectName} (${presentStudents}/${totalStudents} present)`;
-            } else {
-                document.getElementById('lecture-info').textContent =
-                    `${lectureNumber}${getOrdinalSuffix(lectureNumber)} lecture - ${subjectName} (Not taken yet)`;
-            }
-        }
-
-        // Track which students have been marked
-        let currentAttendance = {};
-        let selectedLecture = null;
-
         // Mark individual student attendance
-        function markAttendance(rollNumber, status) {
+        function markAttendance(rollNumber, status, clickedButton) {
             currentAttendance[rollNumber] = status;
 
-            // Update button states
-            const studentItem = event.target.closest('.student-item');
+            const studentItem = clickedButton.closest('.student-item');
             const buttons = studentItem.querySelectorAll('.attendance-btn');
 
             buttons.forEach(btn => {
                 btn.style.opacity = '0.5';
                 btn.style.transform = 'scale(0.95)';
+                btn.style.boxShadow = 'none';
             });
 
-            event.target.style.opacity = '1';
-            event.target.style.transform = 'scale(1)';
-            event.target.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+            clickedButton.style.opacity = '1';
+            clickedButton.style.transform = 'scale(1)';
+            clickedButton.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
         }
 
-        // Save attendance for the class
+        // Save attendance
         function saveAttendance() {
             const subjectSelect = document.getElementById('subject-select');
             const selectedSubjectId = subjectSelect.value;
@@ -997,7 +978,6 @@
                 return;
             }
 
-            // Get subject name for display
             const subjects = getSubjects();
             const selectedSubject = subjects.find(s => s.id == selectedSubjectId);
             const subjectName = selectedSubject ? selectedSubject.name : 'Unknown Subject';
@@ -1005,7 +985,6 @@
             const attendance = getAttendance();
             const key = `${date}_${selectedSubjectId}_${selectedLecture}`;
 
-            // Check if attendance already exists
             if (attendance[key]) {
                 if (!confirm(`Attendance already exists for ${selectedLecture}${getOrdinalSuffix(selectedLecture)} lecture of this subject on this date. Do you want to overwrite it?`)) {
                     return;
@@ -1024,11 +1003,8 @@
             setAttendance(attendance);
             showMessage(messageDiv, `Attendance saved for ${subjectName} - ${selectedLecture}${getOrdinalSuffix(selectedLecture)} lecture on ${date}`, 'success');
 
-            // Reset current attendance
             currentAttendance = {};
             loadStudentsForAttendance();
-
-            // Update lecture info
             updateLectureInfo(selectedSubjectId, date, selectedLecture);
         }
 
@@ -1051,7 +1027,6 @@
                 return;
             }
 
-            // Sort by date and lecture number (newest first)
             subjectAttendance.sort((a, b) => {
                 const dateCompare = new Date(b.date) - new Date(a.date);
                 if (dateCompare === 0) {
@@ -1068,7 +1043,6 @@
                 const absentStudents = totalStudents - presentStudents;
                 const percentage = totalStudents > 0 ? ((presentStudents / totalStudents) * 100).toFixed(1) : 0;
 
-                // Get absent students list
                 const absentList = [];
                 Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
                     if (status === 'absent') {
@@ -1079,10 +1053,10 @@
                 const lectureInfo = record.lectureNumber ? ` - ${record.lectureNumber}${getOrdinalSuffix(record.lectureNumber)} Lecture` : '';
 
                 html += `
-                    <div class="class-summary">
-                        <div class="class-header">
-                            <div class="class-title">${record.subject}${lectureInfo}</div>
-                            <div class="class-date">${new Date(record.date).toLocaleDateString()}</div>
+                    <div class="summary-card">
+                        <div class="summary-header">
+                            <div class="summary-title">${record.subject}${lectureInfo}</div>
+                            <div class="summary-percentage">${percentage}%</div>
                         </div>
                         <div class="summary-stats">
                             <div class="stat-item">
@@ -1094,18 +1068,28 @@
                                 <div class="stat-label">Absent</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-value">${percentage}%</div>
-                                <div class="stat-label">Attendance</div>
+                                <div class="stat-value">${new Date(record.date).toLocaleDateString()}</div>
+                                <div class="stat-label">Date</div>
                             </div>
                         </div>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${percentage}%"></div>
                         </div>
                         ${absentList.length > 0 ? `
-                            <div class="absent-students">
-                                <h4>🚫 Absent Students (${absentList.length})</h4>
-                                <div class="absent-list">
-                                    ${absentList.map(roll => `<span class="absent-roll">${roll}</span>`).join('')}
+                            <div style="margin-top: 15px; padding: 12px; background: #fff3e0; border-radius: 8px; border-left: 4px solid var(--secondary-color);">
+                                <h4 style="color: var(--secondary-dark); margin-bottom: 10px;">🚫 Absent Students (${absentList.length})</h4>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px;">
+                                    ${absentList.map(roll => {
+                    const student = getStudents().find(s => s.roll === roll);
+                    const studentName = student ? student.name.split(' ')[0] : roll;
+                    return `<div style="background: var(--secondary-color); color: white; padding: 6px 8px; border-radius: 12px; font-size: 0.8em; text-align: center;">
+                                            <div style="font-weight: bold;">${roll}</div>
+                                            <div style="font-size: 0.7em; opacity: 0.9;">${studentName}</div>
+                                        </div>`;
+                }).join('')}
+                                </div>
+                                <div style="margin-top: 10px; font-size: 0.8em; color: var(--text-secondary);">
+                                    📧 Click roll numbers to view student's complete absence history
                                 </div>
                             </div>
                         ` : ''}
@@ -1116,43 +1100,25 @@
             summaryDiv.innerHTML = html;
         }
 
-        // Show student-wise summary
-        function showStudentSummary() {
+        // Generate student summary
+        function generateStudentSummary() {
             const subjectSelect = document.getElementById('summary-subject');
             const selectedSubjectId = subjectSelect.value;
-            const summaryDiv = document.getElementById('student-summary');
-
-            if (!selectedSubjectId) {
-                summaryDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Please select a subject to view student summary.</p>';
-                return;
-            }
+            const summaryDiv = document.getElementById('summary-content');
 
             const students = getStudents();
             const attendance = getAttendance();
 
-            // Debug: Log the data structures
-            console.log('Students:', students);
-            console.log('All attendance:', attendance);
-            console.log('Selected subject ID:', selectedSubjectId);
+            let filteredAttendance = Object.values(attendance);
+            if (selectedSubjectId) {
+                filteredAttendance = filteredAttendance.filter(record => record.subjectId == selectedSubjectId);
+            }
 
-            const subjectAttendance = Object.values(attendance).filter(record => {
-                console.log('Checking record:', record);
-                return record.subjectId == selectedSubjectId;
-            });
-
-            console.log('Filtered subject attendance:', subjectAttendance);
-
-            if (subjectAttendance.length === 0) {
-                summaryDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No attendance records found for this subject.</p>';
+            if (filteredAttendance.length === 0) {
+                summaryDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No attendance records found.</p>';
                 return;
             }
 
-            // Get subject name
-            const subjects = getSubjects();
-            const selectedSubject = subjects.find(s => s.id == selectedSubjectId);
-            const subjectName = selectedSubject ? selectedSubject.name : 'Unknown Subject';
-
-            // Calculate student statistics
             const studentStats = {};
             students.forEach(student => {
                 studentStats[student.roll] = {
@@ -1160,11 +1126,13 @@
                     roll: student.roll,
                     present: 0,
                     absent: 0,
-                    total: 0
+                    total: 0,
+                    absentDates: []
                 };
             });
 
-            subjectAttendance.forEach(record => {
+            // Collect attendance data and absent dates
+            filteredAttendance.forEach(record => {
                 const attendanceRecords = record.records || record.attendance || {};
                 Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
                     if (studentStats[rollNumber]) {
@@ -1173,12 +1141,14 @@
                             studentStats[rollNumber].present++;
                         } else {
                             studentStats[rollNumber].absent++;
+                            // Add absent date with lecture info
+                            const lectureInfo = record.lectureNumber ? ` (${record.lectureNumber}${getOrdinalSuffix(record.lectureNumber)} Lec)` : '';
+                            studentStats[rollNumber].absentDates.push(`${new Date(record.date).toLocaleDateString()}${lectureInfo}`);
                         }
                     }
                 });
             });
 
-            // Sort students by attendance percentage (lowest first to highlight absent students)
             const sortedStats = Object.values(studentStats)
                 .filter(stat => stat.total > 0)
                 .sort((a, b) => {
@@ -1187,10 +1157,10 @@
                     return percentageA - percentageB;
                 });
 
-            let html = `<h3 style="margin-bottom: 20px; color: var(--text-primary);">📊 Student Summary for ${subjectName}</h3>`;
+            let html = '<h3 style="margin-bottom: 20px; color: var(--text-primary);">📊 Student Summary</h3>';
 
             if (sortedStats.length === 0) {
-                html += '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No students have attendance records for this subject.</p>';
+                html += '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No students have attendance records.</p>';
             } else {
                 sortedStats.forEach(stat => {
                     const percentage = ((stat.present / stat.total) * 100).toFixed(1);
@@ -1216,12 +1186,21 @@
                                 </div>
                                 <div class="stat-item">
                                     <div class="stat-value">${stat.total}</div>
-                                    <div class="stat-label">Total Classes</div>
+                                    <div class="stat-label">Total</div>
                                 </div>
                             </div>
                             <div class="progress-bar">
                                 <div class="progress-fill" style="width: ${percentage}%; ${isLowAttendance ? 'background: linear-gradient(90deg, var(--error-color), var(--warning-color));' : ''}"></div>
                             </div>
+                            ${stat.absentDates.length > 0 ? `
+                                <div style="margin-top: 15px; padding: 12px; background: #fff3e0; border-radius: 8px; border-left: 3px solid var(--secondary-color);">
+                                    <h4 style="color: var(--secondary-dark); margin-bottom: 10px; font-size: 0.9em;">📅 Absent Dates (${stat.absentDates.length})</h4>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 80px; overflow-y: auto;">
+                                        ${stat.absentDates.map(date => `<span style="background: var(--secondary-color); color: white; padding: 3px 8px; border-radius: 10px; font-size: 0.75em; white-space: nowrap;">${date}</span>`).join('')}
+                                    </div>
+                                    ${stat.absentDates.length > 6 ? '<div style="margin-top: 8px; font-size: 0.75em; color: var(--text-secondary);">Scroll to view all dates</div>' : ''}
+                                </div>
+                            ` : ''}
                         </div>
                     `;
                 });
@@ -1230,1446 +1209,1099 @@
             summaryDiv.innerHTML = html;
         }
 
-        // Handle summary type change
-        function handleSummaryTypeChange() {
-            const summaryType = document.getElementById('summary-type').value;
-            const specificStudentSection = document.getElementById('specific-student-section');
+        // Export to PDF - Student Performance Report
+        function exportStudentPerformancePDF() {
+            const subjectSelect = document.getElementById('summary-subject');
+            const selectedSubjectId = subjectSelect.value;
 
-            if (summaryType === 'specific-student') {
-                specificStudentSection.classList.remove('hidden');
-            } else {
-                specificStudentSection.classList.add('hidden');
-            }
-        }
-
-        // Generate comprehensive summary based on selected type
-        function generateComprehensiveSummary() {
-            const summaryType = document.getElementById('summary-type').value;
-            const summaryContent = document.getElementById('summary-content');
-
-            switch (summaryType) {
-                case 'student':
-                    generateStudentWiseSummary();
-                    break;
-                case 'subject':
-                    generateSubjectWiseSummary();
-                    break;
-                case 'specific-student':
-                    generateSpecificStudentSummary();
-                    break;
-                default:
-                    summaryContent.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Please select a summary type.</p>';
-            }
-        }
-
-        // Generate student-wise summary
-        function generateStudentWiseSummary() {
-            const summaryContent = document.getElementById('summary-content');
-            const selectedSubjectId = document.getElementById('summary-subject').value;
-            const dateFrom = document.getElementById('summary-date-from').value;
-            const dateTo = document.getElementById('summary-date-to').value;
-
-            const students = getStudents();
-            const attendance = getAttendance();
-
-            let filteredAttendance = Object.values(attendance);
-
-            // Filter by subject if selected
-            if (selectedSubjectId) {
-                filteredAttendance = filteredAttendance.filter(record => record.subjectId == selectedSubjectId);
-            }
-
-            // Filter by date range if specified
-            if (dateFrom) {
-                filteredAttendance = filteredAttendance.filter(record => record.date >= dateFrom);
-            }
-            if (dateTo) {
-                filteredAttendance = filteredAttendance.filter(record => record.date <= dateTo);
-            }
-
-            if (filteredAttendance.length === 0) {
-                summaryContent.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No attendance records found for the selected criteria.</p>';
+            if (!selectedSubjectId) {
+                alert('Please select a subject first');
                 return;
             }
 
-            // Calculate student statistics
+            const subjects = getSubjects();
+            const selectedSubject = subjects.find(s => s.id == selectedSubjectId);
+            const subjectName = selectedSubject ? selectedSubject.name : 'Unknown Subject';
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Professional header with background color
+            doc.setFillColor(33, 150, 243); // Primary blue
+            doc.rect(0, 0, 210, 50, 'F');
+
+            // White text on blue background
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(28);
+            doc.setFont(undefined, 'bold');
+            doc.text('STUDENT PERFORMANCE REPORT', 105, 25, { align: 'center' });
+
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'normal');
+            doc.text(`📚 ${subjectName}`, 105, 38, { align: 'center' });
+
+            // Reset text color
+            doc.setTextColor(0, 0, 0);
+
+            // Institution info box
+            doc.setFillColor(245, 245, 245);
+            doc.rect(15, 55, 180, 25, 'F');
+            doc.setDrawColor(200, 200, 200);
+            doc.rect(15, 55, 180, 25, 'S');
+
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            doc.text('📊 REPORT DETAILS', 20, 65);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 20, 72);
+            doc.text('System: Attendance Tracker Pro', 120, 65);
+            doc.text(`Academic Session: ${new Date().getFullYear()}`, 120, 72);
+
+            const students = getStudents();
+            const attendance = getAttendance();
+            const subjectAttendance = Object.values(attendance).filter(record => record.subjectId == selectedSubjectId);
+
+            if (subjectAttendance.length === 0) {
+                doc.setFontSize(14);
+                doc.text('❌ No attendance records found for this subject.', 20, 105);
+                doc.save(`${subjectName}_Student_Performance_Report.pdf`);
+                return;
+            }
+
+            // Calculate comprehensive statistics
             const studentStats = {};
             students.forEach(student => {
                 studentStats[student.roll] = {
                     name: student.name,
                     roll: student.roll,
-                    subjects: {},
-                    totalPresent: 0,
-                    totalAbsent: 0,
-                    totalClasses: 0
+                    present: 0,
+                    absent: 0,
+                    total: 0,
+                    absentDates: []
                 };
             });
 
-            filteredAttendance.forEach(record => {
+            subjectAttendance.forEach(record => {
                 const attendanceRecords = record.records || record.attendance || {};
-                const subjectName = record.subject || 'Unknown Subject';
+                Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
+                    if (studentStats[rollNumber]) {
+                        studentStats[rollNumber].total++;
+                        if (status === 'present') {
+                            studentStats[rollNumber].present++;
+                        } else {
+                            studentStats[rollNumber].absent++;
+                            const lectureInfo = record.lectureNumber ? ` (L${record.lectureNumber})` : '';
+                            studentStats[rollNumber].absentDates.push(`${new Date(record.date).toLocaleDateString()}${lectureInfo}`);
+                        }
+                    }
+                });
+            });
+
+            const sortedStats = Object.values(studentStats)
+                .filter(stat => stat.total > 0)
+                .sort((a, b) => {
+                    const percentageA = (a.present / a.total) * 100;
+                    const percentageB = (b.present / b.total) * 100;
+                    return percentageB - percentageA;
+                });
+
+            // Executive Summary Box
+            let yPos = 90;
+            doc.setFillColor(240, 248, 255);
+            doc.rect(15, yPos, 180, 45, 'F');
+            doc.setDrawColor(33, 150, 243);
+            doc.setLineWidth(1);
+            doc.rect(15, yPos, 180, 45, 'S');
+
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(33, 150, 243);
+            doc.text('📈 EXECUTIVE SUMMARY', 20, yPos + 10);
+
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'normal');
+
+            const avgAttendance = sortedStats.length > 0 ?
+                (sortedStats.reduce((sum, stat) => sum + (stat.present / stat.total * 100), 0) / sortedStats.length).toFixed(1) : 0;
+            const lowAttendanceStudents = sortedStats.filter(stat => (stat.present / stat.total * 100) < 75);
+
+            doc.text(`👥 Total Students: ${sortedStats.length}`, 20, yPos + 20);
+            doc.text(`📅 Total Classes: ${subjectAttendance.length}`, 20, yPos + 28);
+            doc.text(`📊 Average Attendance: ${avgAttendance}%`, 20, yPos + 36);
+
+            doc.text(`⚠️ Below 75%: ${lowAttendanceStudents.length} students`, 110, yPos + 20);
+            doc.text(`🏆 Above 90%: ${sortedStats.filter(stat => (stat.present / stat.total * 100) >= 90).length} students`, 110, yPos + 28);
+            doc.text(`🎯 Class Average: ${avgAttendance >= 85 ? 'Excellent' : avgAttendance >= 75 ? 'Good' : 'Needs Improvement'}`, 110, yPos + 36);
+
+            // Performance Table
+            yPos = 145;
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(33, 150, 243);
+            doc.text('🏆 STUDENT PERFORMANCE RANKING', 20, yPos);
+
+            yPos += 10;
+            // Table header with background
+            doc.setFillColor(33, 150, 243);
+            doc.rect(15, yPos, 180, 12, 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'bold');
+            doc.text('#', 18, yPos + 8);
+            doc.text('Roll No.', 30, yPos + 8);
+            doc.text('Student Name', 60, yPos + 8);
+            doc.text('Present', 115, yPos + 8);
+            doc.text('Absent', 135, yPos + 8);
+            doc.text('Total', 155, yPos + 8);
+            doc.text('Percentage', 170, yPos + 8);
+
+            yPos += 12;
+            doc.setTextColor(0, 0, 0);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(8);
+
+            sortedStats.forEach((stat, index) => {
+                if (yPos > 270) {
+                    doc.addPage();
+                    // Repeat header on new page
+                    doc.setFillColor(33, 150, 243);
+                    doc.rect(15, 20, 180, 12, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('#', 18, 28);
+                    doc.text('Roll No.', 30, 28);
+                    doc.text('Student Name', 60, 28);
+                    doc.text('Present', 115, 28);
+                    doc.text('Absent', 135, 28);
+                    doc.text('Total', 155, 28);
+                    doc.text('Percentage', 170, 28);
+                    yPos = 32;
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(8);
+                }
+
+                const percentage = ((stat.present / stat.total) * 100).toFixed(1);
+                const rank = index + 1;
+
+                // Alternating row colors
+                if (index % 2 === 0) {
+                    doc.setFillColor(248, 249, 250);
+                    doc.rect(15, yPos - 2, 180, 8, 'F');
+                }
+
+                // Simple numeric ranking
+                doc.text(rank.toString(), 18, yPos + 4);
+                doc.text(stat.roll, 30, yPos + 4);
+                doc.text(stat.name.substring(0, 22), 60, yPos + 4);
+                doc.text(stat.present.toString(), 120, yPos + 4);
+                doc.text(stat.absent.toString(), 140, yPos + 4);
+                doc.text(stat.total.toString(), 160, yPos + 4);
+
+                // Simple percentage display
+                doc.setFont(undefined, 'bold');
+                doc.text(`${percentage}%`, 172, yPos + 4);
+                doc.setFont(undefined, 'normal');
+
+                yPos += 8;
+            });
+
+            // Detailed absentee analysis on new page
+            doc.addPage();
+            yPos = 20;
+
+            // Header for absentee analysis
+            doc.setFillColor(255, 193, 7);
+            doc.rect(0, 0, 210, 35, 'F');
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text('📅 DETAILED ABSENTEE ANALYSIS', 105, 22, { align: 'center' });
+
+            yPos = 45;
+            const studentsWithAbsences = sortedStats.filter(stat => stat.absent > 0);
+
+            if (studentsWithAbsences.length > 0) {
+                studentsWithAbsences.forEach(stat => {
+                    if (yPos > 260) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+
+                    const percentage = ((stat.present / stat.total) * 100).toFixed(1);
+
+                    // Student info box
+                    if (percentage < 75) {
+                        doc.setFillColor(255, 235, 238);
+                    } else {
+                        doc.setFillColor(248, 249, 250);
+                    }
+                    doc.rect(15, yPos, 180, 30, 'F');
+
+                    if (percentage < 75) {
+                        doc.setDrawColor(244, 67, 54);
+                    } else {
+                        doc.setDrawColor(224, 224, 224);
+                    }
+                    doc.rect(15, yPos, 180, 30, 'S');
+
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    if (percentage < 75) {
+                        doc.setTextColor(211, 47, 47);
+                    } else {
+                        doc.setTextColor(0, 0, 0);
+                    }
+                    doc.text(`${stat.name} (${stat.roll}) - ${percentage}%`, 20, yPos + 10);
+
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(0, 0, 0);
+                    doc.text(`Absent: ${stat.absent}/${stat.total} classes`, 20, yPos + 18);
+
+                    if (stat.absentDates.length > 0) {
+                        doc.text('Absent Dates:', 20, yPos + 25);
+                        const datesText = stat.absentDates.slice(0, 6).join(', ');
+                        doc.text(datesText, 50, yPos + 25);
+                        if (stat.absentDates.length > 6) {
+                            doc.text(`... and ${stat.absentDates.length - 6} more`, 20, yPos + 32);
+                            yPos += 8;
+                        }
+                    }
+
+                    yPos += 40;
+                });
+            } else {
+                doc.setFontSize(14);
+                doc.text('🎉 Excellent! No students have recorded absences.', 20, yPos);
+            }
+
+            // Professional footer
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+
+                // Footer background
+                doc.setFillColor(248, 249, 250);
+                doc.rect(0, 280, 210, 20, 'F');
+
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(8);
+                doc.text(`📄 Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
+                doc.text('Generated by Attendance Tracker Pro • Confidential Document', 105, 285, { align: 'center' });
+                doc.text(`Report Date: ${new Date().toLocaleDateString()}`, 20, 290);
+                doc.text(`Subject: ${subjectName}`, 160, 290);
+            }
+
+            doc.save(`${subjectName}_Student_Performance_Report.pdf`);
+        }
+
+        // Export to PDF - Class Attendance Report
+        function exportClassAttendancePDF() {
+            const subjectSelect = document.getElementById('summary-subject');
+            const selectedSubjectId = subjectSelect.value;
+
+            if (!selectedSubjectId) {
+                alert('Please select a subject first');
+                return;
+            }
+
+            const subjects = getSubjects();
+            const selectedSubject = subjects.find(s => s.id == selectedSubjectId);
+            const subjectName = selectedSubject ? selectedSubject.name : 'Unknown Subject';
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFontSize(24);
+            doc.setFont(undefined, 'bold');
+            doc.text('CLASS ATTENDANCE REPORT', 105, 25, { align: 'center' });
+
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Subject: ${subjectName}`, 105, 40, { align: 'center' });
+
+            // Institution details
+            doc.setFontSize(12);
+            doc.text('Generated by: Attendance Tracker System', 20, 55);
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 65);
+            doc.text(`Time: ${new Date().toLocaleTimeString()}`, 20, 75);
+
+            // Line separator
+            doc.setLineWidth(0.5);
+            doc.line(20, 85, 190, 85);
+
+            const attendance = getAttendance();
+            const subjectAttendance = Object.values(attendance).filter(record => record.subjectId == selectedSubjectId);
+
+            if (subjectAttendance.length === 0) {
+                doc.setFontSize(14);
+                doc.text('No attendance records found for this subject.', 20, 105);
+                doc.save(`${subjectName}_Class_Attendance_Report.pdf`);
+                return;
+            }
+
+            // Sort by date and lecture
+            subjectAttendance.sort((a, b) => {
+                const dateCompare = new Date(a.date) - new Date(b.date);
+                if (dateCompare === 0) {
+                    return a.lectureNumber - b.lectureNumber;
+                }
+                return dateCompare;
+            });
+
+            // Summary
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('ATTENDANCE SUMMARY BY CLASS', 20, 100);
+
+            let yPos = 120;
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('Date', 20, yPos);
+            doc.text('Lecture', 50, yPos);
+            doc.text('Total Students', 80, yPos);
+            doc.text('Present', 120, yPos);
+            doc.text('Absent', 145, yPos);
+            doc.text('Attendance %', 170, yPos);
+
+            doc.setLineWidth(0.3);
+            doc.line(20, yPos + 3, 200, yPos + 3);
+
+            yPos += 10;
+            doc.setFont(undefined, 'normal');
+
+            let totalClasses = 0;
+            let totalPresent = 0;
+            let totalStudentDays = 0;
+
+            subjectAttendance.forEach(record => {
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                const attendanceRecords = record.records || record.attendance || {};
+                const totalStudents = Object.keys(attendanceRecords).length;
+                const presentStudents = Object.values(attendanceRecords).filter(status => status === 'present').length;
+                const absentStudents = totalStudents - presentStudents;
+                const percentage = totalStudents > 0 ? ((presentStudents / totalStudents) * 100).toFixed(1) : 0;
+
+                totalClasses++;
+                totalPresent += presentStudents;
+                totalStudentDays += totalStudents;
+
+                doc.text(new Date(record.date).toLocaleDateString(), 20, yPos);
+                doc.text(`${record.lectureNumber}${getOrdinalSuffix(record.lectureNumber)}`, 50, yPos);
+                doc.text(totalStudents.toString(), 90, yPos);
+                doc.text(presentStudents.toString(), 130, yPos);
+                doc.text(absentStudents.toString(), 155, yPos);
+
+                // Color code percentage
+                if (percentage < 70) {
+                    doc.setTextColor(255, 0, 0); // Red
+                } else if (percentage < 85) {
+                    doc.setTextColor(255, 165, 0); // Orange
+                } else {
+                    doc.setTextColor(0, 128, 0); // Green
+                }
+                doc.text(`${percentage}%`, 175, yPos);
+                doc.setTextColor(0, 0, 0); // Reset
+
+                yPos += 8;
+            });
+
+            // Overall statistics
+            yPos += 10;
+            doc.setLineWidth(0.5);
+            doc.line(20, yPos, 200, yPos);
+            yPos += 10;
+
+            doc.setFont(undefined, 'bold');
+            doc.text('OVERALL STATISTICS', 20, yPos);
+            yPos += 15;
+
+            doc.setFont(undefined, 'normal');
+            doc.text(`Total Classes Conducted: ${totalClasses}`, 20, yPos);
+            yPos += 10;
+            doc.text(`Total Student-Days: ${totalStudentDays}`, 20, yPos);
+            yPos += 10;
+            doc.text(`Total Present: ${totalPresent}`, 20, yPos);
+            yPos += 10;
+            doc.text(`Total Absent: ${totalStudentDays - totalPresent}`, 20, yPos);
+            yPos += 10;
+
+            const overallPercentage = totalStudentDays > 0 ? ((totalPresent / totalStudentDays) * 100).toFixed(1) : 0;
+            doc.setFont(undefined, 'bold');
+            doc.text(`Overall Attendance Rate: ${overallPercentage}%`, 20, yPos);
+
+            // Footer
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
+                doc.text('Generated by Attendance Tracker System', 105, 285, { align: 'center' });
+            }
+
+            doc.save(`${subjectName}_Class_Attendance_Report.pdf`);
+        }
+
+        // Export to PDF - Detailed Analysis Report
+        function exportDetailedAnalysisPDF() {
+            const subjectSelect = document.getElementById('summary-subject');
+            const selectedSubjectId = subjectSelect.value;
+
+            if (!selectedSubjectId) {
+                alert('Please select a subject first');
+                return;
+            }
+
+            const subjects = getSubjects();
+            const selectedSubject = subjects.find(s => s.id == selectedSubjectId);
+            const subjectName = selectedSubject ? selectedSubject.name : 'Unknown Subject';
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFontSize(24);
+            doc.setFont(undefined, 'bold');
+            doc.text('DETAILED ANALYSIS REPORT', 105, 25, { align: 'center' });
+
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Subject: ${subjectName}`, 105, 40, { align: 'center' });
+
+            // Institution details
+            doc.setFontSize(12);
+            doc.text('Generated by: Attendance Tracker System', 20, 55);
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 65);
+            doc.text(`Time: ${new Date().toLocaleTimeString()}`, 20, 75);
+
+            // Line separator
+            doc.setLineWidth(0.5);
+            doc.line(20, 85, 190, 85);
+
+            const students = getStudents();
+            const attendance = getAttendance();
+            const subjectAttendance = Object.values(attendance).filter(record => record.subjectId == selectedSubjectId);
+
+            if (subjectAttendance.length === 0) {
+                doc.setFontSize(14);
+                doc.text('No attendance records found for this subject.', 20, 105);
+                doc.save(`${subjectName}_Detailed_Analysis_Report.pdf`);
+                return;
+            }
+
+            // Calculate comprehensive statistics
+            const studentStats = {};
+            students.forEach(student => {
+                studentStats[student.roll] = {
+                    name: student.name,
+                    roll: student.roll,
+                    present: 0,
+                    absent: 0,
+                    total: 0,
+                    lectureWise: {}
+                };
+            });
+
+            // Lecture-wise analysis
+            const lectureStats = { 1: { present: 0, total: 0 }, 2: { present: 0, total: 0 }, 3: { present: 0, total: 0 } };
+
+            subjectAttendance.forEach(record => {
+                const attendanceRecords = record.records || record.attendance || {};
+                const lectureNum = record.lectureNumber || 1;
 
                 Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
                     if (studentStats[rollNumber]) {
-                        // Initialize subject if not exists
-                        if (!studentStats[rollNumber].subjects[subjectName]) {
-                            studentStats[rollNumber].subjects[subjectName] = {
-                                present: 0,
-                                absent: 0,
-                                total: 0
-                            };
-                        }
-
-                        studentStats[rollNumber].subjects[subjectName].total++;
-                        studentStats[rollNumber].totalClasses++;
-
+                        studentStats[rollNumber].total++;
                         if (status === 'present') {
-                            studentStats[rollNumber].subjects[subjectName].present++;
-                            studentStats[rollNumber].totalPresent++;
+                            studentStats[rollNumber].present++;
+                            lectureStats[lectureNum].present++;
                         } else {
-                            studentStats[rollNumber].subjects[subjectName].absent++;
-                            studentStats[rollNumber].totalAbsent++;
+                            studentStats[rollNumber].absent++;
+                        }
+                        lectureStats[lectureNum].total++;
+
+                        if (!studentStats[rollNumber].lectureWise[lectureNum]) {
+                            studentStats[rollNumber].lectureWise[lectureNum] = { present: 0, total: 0 };
+                        }
+                        studentStats[rollNumber].lectureWise[lectureNum].total++;
+                        if (status === 'present') {
+                            studentStats[rollNumber].lectureWise[lectureNum].present++;
                         }
                     }
                 });
             });
 
-            // Sort students by overall attendance percentage
-            const sortedStats = Object.values(studentStats)
-                .filter(stat => stat.totalClasses > 0)
-                .sort((a, b) => {
-                    const percentageA = (a.totalPresent / a.totalClasses) * 100;
-                    const percentageB = (b.totalPresent / b.totalClasses) * 100;
-                    return percentageA - percentageB;
-                });
+            let yPos = 100;
 
-            let html = '<h2 style="color: var(--text-primary); margin-bottom: 20px;">📊 Student-wise Summary</h2>';
+            // Executive Summary
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('EXECUTIVE SUMMARY', 20, yPos);
+            yPos += 15;
 
-            if (sortedStats.length === 0) {
-                html += '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No students have attendance records for the selected criteria.</p>';
-            } else {
-                sortedStats.forEach(stat => {
-                    const overallPercentage = ((stat.totalPresent / stat.totalClasses) * 100).toFixed(1);
-                    const isLowAttendance = overallPercentage < 75;
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
 
-                    html += `
-                        <div class="summary-card" style="${isLowAttendance ? 'border-left-color: var(--error-color); background: #ffeaea;' : ''}">
-                            <div class="summary-header">
-                                <div class="summary-title">
-                                    ${stat.name} ${isLowAttendance ? '⚠️' : ''}
-                                    <div style="font-size: 0.8em; color: var(--text-secondary);">Roll: ${stat.roll}</div>
-                                </div>
-                                <div class="summary-percentage" style="${isLowAttendance ? 'color: var(--error-color);' : ''}">${overallPercentage}%</div>
-                            </div>
-                            <div class="summary-stats">
-                                <div class="stat-item">
-                                    <div class="stat-value" style="color: var(--accent-color);">${stat.totalPresent}</div>
-                                    <div class="stat-label">Present</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value" style="color: var(--error-color);">${stat.totalAbsent}</div>
-                                    <div class="stat-label">Absent</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">${stat.totalClasses}</div>
-                                    <div class="stat-label">Total</div>
-                                </div>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${overallPercentage}%; ${isLowAttendance ? 'background: linear-gradient(90deg, var(--error-color), var(--warning-color));' : ''}"></div>
-                            </div>
-                    `;
+            const validStats = Object.values(studentStats).filter(stat => stat.total > 0);
+            const avgAttendance = validStats.length > 0 ?
+                (validStats.reduce((sum, stat) => sum + (stat.present / stat.total * 100), 0) / validStats.length).toFixed(1) : 0;
 
-                    // Subject-wise breakdown
-                    if (Object.keys(stat.subjects).length > 1) {
-                        html += '<div style="margin-top: 15px;"><h4 style="color: var(--text-secondary); margin-bottom: 10px;">Subject-wise:</h4>';
-                        Object.entries(stat.subjects).forEach(([subjectName, subjectStat]) => {
-                            const subjectPercentage = ((subjectStat.present / subjectStat.total) * 100).toFixed(1);
-                            html += `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--divider-color);">
-                                    <span style="font-size: 0.9em;">${subjectName}</span>
-                                    <span style="font-weight: 600; color: ${subjectPercentage < 75 ? 'var(--error-color)' : 'var(--accent-color)'};">${subjectStat.present}/${subjectStat.total} (${subjectPercentage}%)</span>
-                                </div>
-                            `;
-                        });
-                        html += '</div>';
-                    }
+            doc.text(`• Total Students Enrolled: ${students.length}`, 20, yPos);
+            yPos += 10;
+            doc.text(`• Students with Attendance Records: ${validStats.length}`, 20, yPos);
+            yPos += 10;
+            doc.text(`• Total Classes Conducted: ${subjectAttendance.length}`, 20, yPos);
+            yPos += 10;
+            doc.text(`• Average Class Attendance: ${avgAttendance}%`, 20, yPos);
+            yPos += 20;
 
-                    html += '</div>';
-                });
-            }
+            // Lecture-wise Performance
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('LECTURE-WISE PERFORMANCE ANALYSIS', 20, yPos);
+            yPos += 15;
 
-            // Generate subject-wise summary
-            function generateSubjectWiseSummary() {
-                const summaryContent = document.getElementById('summary-content');
-                const dateFrom = document.getElementById('summary-date-from').value;
-                const dateTo = document.getElementById('summary-date-to').value;
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
 
-                const subjects = getSubjects();
-                const attendance = getAttendance();
-
-                let filteredAttendance = Object.values(attendance);
-
-                // Filter by date range if specified
-                if (dateFrom) {
-                    filteredAttendance = filteredAttendance.filter(record => record.date >= dateFrom);
+            [1, 2, 3].forEach(lectureNum => {
+                const stats = lectureStats[lectureNum];
+                if (stats.total > 0) {
+                    const percentage = ((stats.present / stats.total) * 100).toFixed(1);
+                    doc.text(`• ${lectureNum}${getOrdinalSuffix(lectureNum)} Lecture: ${percentage}% attendance (${stats.present}/${stats.total})`, 20, yPos);
+                    yPos += 10;
                 }
-                if (dateTo) {
-                    filteredAttendance = filteredAttendance.filter(record => record.date <= dateTo);
-                }
-
-                if (filteredAttendance.length === 0) {
-                    summaryContent.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No attendance records found for the selected date range.</p>';
-                    return;
-                }
-
-                // Calculate subject statistics
-                const subjectStats = {};
-                subjects.forEach(subject => {
-                    subjectStats[subject.id] = {
-                        name: subject.name,
-                        classes: 0,
-                        totalStudents: 0,
-                        totalPresent: 0,
-                        totalAbsent: 0,
-                        lectures: {}
-                    };
-                });
-
-                filteredAttendance.forEach(record => {
-                    const subjectId = record.subjectId;
-                    if (subjectStats[subjectId]) {
-                        subjectStats[subjectId].classes++;
-
-                        const lectureKey = `Lecture ${record.lectureNumber || 1}`;
-                        if (!subjectStats[subjectId].lectures[lectureKey]) {
-                            subjectStats[subjectId].lectures[lectureKey] = {
-                                present: 0,
-                                absent: 0,
-                                total: 0
-                            };
-                        }
-
-                        const attendanceRecords = record.records || record.attendance || {};
-                        Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
-                            subjectStats[subjectId].totalStudents++;
-                            subjectStats[subjectId].lectures[lectureKey].total++;
-
-                            if (status === 'present') {
-                                subjectStats[subjectId].totalPresent++;
-                                subjectStats[subjectId].lectures[lectureKey].present++;
-                            } else {
-                                subjectStats[subjectId].totalAbsent++;
-                                subjectStats[subjectId].lectures[lectureKey].absent++;
-                            }
-                        });
-                    }
-                });
-
-                // Filter subjects with records and sort by attendance percentage
-                const sortedStats = Object.values(subjectStats)
-                    .filter(stat => stat.totalStudents > 0)
-                    .sort((a, b) => {
-                        const percentageA = (a.totalPresent / a.totalStudents) * 100;
-                        const percentageB = (b.totalPresent / b.totalStudents) * 100;
-                        return percentageB - percentageA;
-                    });
-
-                let html = '<h2 style="color: var(--text-primary); margin-bottom: 20px;">📚 Subject-wise Summary</h2>';
-
-                if (sortedStats.length === 0) {
-                    html += '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No subjects have attendance records for the selected date range.</p>';
-                } else {
-                    sortedStats.forEach(stat => {
-                        const overallPercentage = ((stat.totalPresent / stat.totalStudents) * 100).toFixed(1);
-                        const avgPerClass = (stat.totalStudents / stat.classes).toFixed(1);
-
-                        html += `
-                        <div class="summary-card">
-                            <div class="summary-header">
-                                <div class="summary-title">
-                                    ${stat.name}
-                                    <div style="font-size: 0.8em; color: var(--text-secondary);">${stat.classes} Classes Conducted</div>
-                                </div>
-                                <div class="summary-percentage">${overallPercentage}%</div>
-                            </div>
-                            <div class="summary-stats">
-                                <div class="stat-item">
-                                    <div class="stat-value" style="color: var(--accent-color);">${stat.totalPresent}</div>
-                                    <div class="stat-label">Total Present</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value" style="color: var(--error-color);">${stat.totalAbsent}</div>
-                                    <div class="stat-label">Total Absent</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">${avgPerClass}</div>
-                                    <div class="stat-label">Avg/Class</div>
-                                </div>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${overallPercentage}%;"></div>
-                            </div>
-                    `;
-
-                        // Lecture-wise breakdown
-                        if (Object.keys(stat.lectures).length > 1) {
-                            html += '<div style="margin-top: 15px;"><h4 style="color: var(--text-secondary); margin-bottom: 10px;">Lecture-wise:</h4>';
-                            Object.entries(stat.lectures).forEach(([lectureName, lectureStat]) => {
-                                const lecturePercentage = ((lectureStat.present / lectureStat.total) * 100).toFixed(1);
-                                html += `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--divider-color);">
-                                    <span style="font-size: 0.9em;">${lectureName}</span>
-                                    <span style="font-weight: 600; color: var(--accent-color);">${lectureStat.present}/${lectureStat.total} (${lecturePercentage}%)</span>
-                                </div>
-                            `;
-                            });
-                            html += '</div>';
-                        }
-
-                        html += '</div>';
-                    });
-                }
-
-                summaryContent.innerHTML = html;
-            }
-
-            // Generate specific student summary
-            function generateSpecificStudentSummary() {
-                const summaryContent = document.getElementById('summary-content');
-                const rollNumber = document.getElementById('specific-student-roll').value.trim();
-                const selectedSubjectId = document.getElementById('summary-subject').value;
-                const dateFrom = document.getElementById('summary-date-from').value;
-                const dateTo = document.getElementById('summary-date-to').value;
-
-                if (!rollNumber) {
-                    summaryContent.innerHTML = '<p style="color: var(--error-color); text-align: center; padding: 20px;">Please enter a roll number to view specific student summary.</p>';
-                    return;
-                }
-
-                const students = getStudents();
-                const attendance = getAttendance();
-                const subjects = getSubjects();
-
-                // Find the student
-                const student = students.find(s => s.roll === rollNumber);
-                if (!student) {
-                    summaryContent.innerHTML = `<p style="color: var(--error-color); text-align: center; padding: 20px;">Student with roll number "${rollNumber}" not found.</p>`;
-                    return;
-                }
-
-                let filteredAttendance = Object.values(attendance);
-
-                // Filter by subject if selected
-                if (selectedSubjectId) {
-                    filteredAttendance = filteredAttendance.filter(record => record.subjectId == selectedSubjectId);
-                }
-
-                // Filter by date range if specified
-                if (dateFrom) {
-                    filteredAttendance = filteredAttendance.filter(record => record.date >= dateFrom);
-                }
-                if (dateTo) {
-                    filteredAttendance = filteredAttendance.filter(record => record.date <= dateTo);
-                }
-
-                // Filter records that include this student
-                const studentAttendance = filteredAttendance.filter(record => {
-                    const attendanceRecords = record.records || record.attendance || {};
-                    return attendanceRecords.hasOwnProperty(rollNumber);
-                });
-
-                if (studentAttendance.length === 0) {
-                    summaryContent.innerHTML = `<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No attendance records found for ${student.name} (${rollNumber}) with the selected criteria.</p>`;
-                    return;
-                }
-
-                // Calculate statistics
-                const stats = {
-                    subjects: {},
-                    totalPresent: 0,
-                    totalAbsent: 0,
-                    totalClasses: 0
-                };
-
-                studentAttendance.forEach(record => {
-                    const attendanceRecords = record.records || record.attendance || {};
-                    const status = attendanceRecords[rollNumber];
-                    const subjectName = record.subject || subjects.find(s => s.id == record.subjectId)?.name || 'Unknown Subject';
-                    const lectureNumber = record.lectureNumber || 1;
-
-                    if (!stats.subjects[subjectName]) {
-                        stats.subjects[subjectName] = {
-                            present: 0,
-                            absent: 0,
-                            total: 0,
-                            details: []
-                        };
-                    }
-
-                    stats.subjects[subjectName].total++;
-                    stats.totalClasses++;
-
-                    if (status === 'present') {
-                        stats.subjects[subjectName].present++;
-                        stats.totalPresent++;
-                    } else {
-                        stats.subjects[subjectName].absent++;
-                        stats.totalAbsent++;
-                    }
-
-                    stats.subjects[subjectName].details.push({
-                        date: record.date,
-                        lecture: lectureNumber,
-                        status: status
-                    });
-                });
-
-                const overallPercentage = ((stats.totalPresent / stats.totalClasses) * 100).toFixed(1);
-                const isLowAttendance = overallPercentage < 75;
-
-                let html = `
-                <h2 style="color: var(--text-primary); margin-bottom: 20px;">👤 Summary for ${student.name}</h2>
-                <div class="summary-card" style="${isLowAttendance ? 'border-left-color: var(--error-color); background: #ffeaea;' : ''}">
-                    <div class="summary-header">
-                        <div class="summary-title">
-                            ${student.name} ${isLowAttendance ? '⚠️' : ''}
-                            <div style="font-size: 0.8em; color: var(--text-secondary);">Roll: ${student.roll}</div>
-                        </div>
-                        <div class="summary-percentage" style="${isLowAttendance ? 'color: var(--error-color);' : ''}">${overallPercentage}%</div>
-                    </div>
-                    <div class="summary-stats">
-                        <div class="stat-item">
-                            <div class="stat-value" style="color: var(--accent-color);">${stats.totalPresent}</div>
-                            <div class="stat-label">Present</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" style="color: var(--error-color);">${stats.totalAbsent}</div>
-                            <div class="stat-label">Absent</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${stats.totalClasses}</div>
-                            <div class="stat-label">Total Classes</div>
-                        </div>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${overallPercentage}%; ${isLowAttendance ? 'background: linear-gradient(90deg, var(--error-color), var(--warning-color));' : ''}"></div>
-                    </div>
-                </div>
-            `;
-
-                // Subject-wise breakdown
-                Object.entries(stats.subjects).forEach(([subjectName, subjectStat]) => {
-                    const subjectPercentage = ((subjectStat.present / subjectStat.total) * 100).toFixed(1);
-                    const isSubjectLow = subjectPercentage < 75;
-
-                    html += `
-                    <div class="summary-card" style="margin-top: 15px; ${isSubjectLow ? 'border-left-color: var(--warning-color);' : ''}">
-                        <div class="summary-header">
-                            <div class="summary-title">
-                                ${subjectName} ${isSubjectLow ? '⚠️' : ''}
-                            </div>
-                            <div class="summary-percentage" style="${isSubjectLow ? 'color: var(--warning-color);' : ''}">${subjectPercentage}%</div>
-                        </div>
-                        <div class="summary-stats">
-                            <div class="stat-item">
-                                <div class="stat-value" style="color: var(--accent-color);">${subjectStat.present}</div>
-                                <div class="stat-label">Present</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value" style="color: var(--error-color);">${subjectStat.absent}</div>
-                                <div class="stat-label">Absent</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value">${subjectStat.total}</div>
-                                <div class="stat-label">Total</div>
-                            </div>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${subjectPercentage}%; ${isSubjectLow ? 'background: linear-gradient(90deg, var(--warning-color), var(--error-color));' : ''}"></div>
-                        </div>
-                `;
-
-                    // Detailed attendance history
-                    html += '<div style="margin-top: 15px;"><h4 style="color: var(--text-secondary); margin-bottom: 10px;">Attendance History:</h4>';
-                    subjectStat.details.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(detail => {
-                        const statusIcon = detail.status === 'present' ? '✅' : '❌';
-                        const statusColor = detail.status === 'present' ? 'var(--accent-color)' : 'var(--error-color)';
-                        html += `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--divider-color);">
-                            <span style="font-size: 0.9em;">${detail.date} - Lecture ${detail.lecture}</span>
-                            <span style="color: ${statusColor}; font-weight: 600;">${statusIcon} ${detail.status.charAt(0).toUpperCase() + detail.status.slice(1)}</span>
-                        </div>
-                    `;
-                    });
-                    html += '</div></div>';
-                });
-
-                summaryContent.innerHTML = html;
-            }
-
-            // Enhanced PDF export with comprehensive formatting
-            function exportSummaryToPDF() {
-                const summaryType = document.getElementById('summary-type').value;
-                const summaryContent = document.getElementById('summary-content');
-
-                if (!summaryContent.innerHTML || summaryContent.innerHTML.includes('Please select')) {
-                    alert('Please generate a summary first before exporting to PDF.');
-                    return;
-                }
-
-                try {
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF();
-
-                    // Set up PDF styling
-                    const pageWidth = doc.internal.pageSize.width;
-                    const margin = 20;
-                    const maxWidth = pageWidth - (margin * 2);
-                    let yPosition = margin;
-
-                    // Header
-                    doc.setFontSize(18);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text('📊 Attendance Summary Report', margin, yPosition);
-
-                    yPosition += 10;
-                    doc.setFontSize(12);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, yPosition);
-
-                    yPosition += 10;
-                    doc.text(`Report Type: ${summaryType.charAt(0).toUpperCase() + summaryType.slice(1)} Summary`, margin, yPosition);
-
-                    yPosition += 15;
-
-                    // Extract and format summary data based on type
-                    if (summaryType === 'student') {
-                        exportStudentWisePDF(doc, margin, yPosition, maxWidth);
-                    } else if (summaryType === 'subject') {
-                        exportSubjectWisePDF(doc, margin, yPosition, maxWidth);
-                    } else if (summaryType === 'specific-student') {
-                        exportSpecificStudentPDF(doc, margin, yPosition, maxWidth);
-                    }
-
-                    // Save the PDF
-                    const fileName = `attendance-${summaryType}-summary-${new Date().toISOString().split('T')[0]}.pdf`;
-                    doc.save(fileName);
-
-                } catch (error) {
-                    console.error('Error generating PDF:', error);
-                    alert('Error generating PDF. Please try again.');
-                }
-            }
-
-            // Export student-wise summary to PDF
-            function exportStudentWisePDF(doc, margin, startY, maxWidth) {
-                let yPosition = startY;
-                const students = getStudents();
-                const attendance = getAttendance();
-                const subjects = getSubjects();
-
-                // Calculate student statistics with detailed absent dates
-                const studentStats = {};
-                students.forEach(student => {
-                    studentStats[student.roll] = {
-                        name: student.name,
-                        roll: student.roll,
-                        totalPresent: 0,
-                        totalAbsent: 0,
-                        totalClasses: 0,
-                        absentDates: []
-                    };
-                });
-
-                Object.values(attendance).forEach(record => {
-                    const attendanceRecords = record.records || record.attendance || {};
-                    const subjectName = record.subject || subjects.find(s => s.id == record.subjectId)?.name || 'Unknown Subject';
-                    const lectureInfo = record.lectureNumber ? ` (Lecture ${record.lectureNumber})` : '';
-
-                    Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
-                        if (studentStats[rollNumber]) {
-                            studentStats[rollNumber].totalClasses++;
-                            if (status === 'present') {
-                                studentStats[rollNumber].totalPresent++;
-                            } else {
-                                studentStats[rollNumber].totalAbsent++;
-                                studentStats[rollNumber].absentDates.push({
-                                    date: record.date,
-                                    subject: subjectName,
-                                    lecture: lectureInfo
-                                });
-                            }
-                        }
-                    });
-                });
-
-                const sortedStats = Object.values(studentStats)
-                    .filter(stat => stat.totalClasses > 0)
-                    .sort((a, b) => {
-                        const percentageA = (a.totalPresent / a.totalClasses) * 100;
-                        const percentageB = (b.totalPresent / b.totalClasses) * 100;
-                        return percentageA - percentageB;
-                    });
-
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Student-wise Attendance Summary', margin, yPosition);
-                yPosition += 15;
-
-                sortedStats.forEach(stat => {
-                    if (yPosition > 230) {
-                        doc.addPage();
-                        yPosition = margin;
-                    }
-
-                    const percentage = ((stat.totalPresent / stat.totalClasses) * 100).toFixed(1);
-
-                    doc.setFontSize(12);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(`${stat.name} (Roll: ${stat.roll})`, margin, yPosition);
-
-                    doc.setFont('helvetica', 'normal');
-                    yPosition += 8;
-                    doc.text(`Attendance: ${percentage}% (${stat.totalPresent}/${stat.totalClasses})`, margin + 10, yPosition);
-                    yPosition += 6;
-                    doc.text(`Present: ${stat.totalPresent} | Absent: ${stat.totalAbsent}`, margin + 10, yPosition);
-
-                    if (percentage < 75) {
-                        yPosition += 6;
-                        doc.setTextColor(255, 0, 0);
-                        doc.text('⚠ Low Attendance Warning', margin + 10, yPosition);
-                        doc.setTextColor(0, 0, 0);
-                    }
-
-                    // Add detailed absent dates if student has absences
-                    if (stat.absentDates && stat.absentDates.length > 0) {
-                        yPosition += 8;
-                        doc.setFontSize(10);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text('Absent on following dates:', margin + 10, yPosition);
-                        yPosition += 6;
-
-                        doc.setFont('helvetica', 'normal');
-                        stat.absentDates.forEach(absentRecord => {
-                            if (yPosition > 280) {
-                                doc.addPage();
-                                yPosition = margin;
-                            }
-                            doc.text(`• ${absentRecord.date} - ${absentRecord.subject}${absentRecord.lecture}`, margin + 15, yPosition);
-                            yPosition += 5;
-                        });
-                        doc.setFontSize(12);
-                    }
-
-                    yPosition += 15;
-                });
-            }
-
-            // Export subject-wise summary to PDF
-            function exportSubjectWisePDF(doc, margin, startY, maxWidth) {
-                let yPosition = startY;
-                const subjects = getSubjects();
-                const attendance = getAttendance();
-                const students = getStudents();
-
-                // Calculate subject statistics with detailed absent student information
-                const subjectStats = {};
-                subjects.forEach(subject => {
-                    subjectStats[subject.id] = {
-                        name: subject.name,
-                        classes: 0,
-                        totalPresent: 0,
-                        totalAbsent: 0,
-                        totalStudents: 0,
-                        classDetails: []
-                    };
-                });
-
-                Object.values(attendance).forEach(record => {
-                    const subjectId = record.subjectId;
-                    if (subjectStats[subjectId]) {
-                        subjectStats[subjectId].classes++;
-                        const attendanceRecords = record.records || record.attendance || {};
-                        const absentStudents = [];
-                        const presentStudents = [];
-
-                        Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
-                            const student = students.find(s => s.roll === rollNumber);
-                            const studentName = student ? student.name : `Roll ${rollNumber}`;
-
-                            subjectStats[subjectId].totalStudents++;
-                            if (status === 'present') {
-                                subjectStats[subjectId].totalPresent++;
-                                presentStudents.push(studentName);
-                            } else {
-                                subjectStats[subjectId].totalAbsent++;
-                                absentStudents.push(`${studentName} (${rollNumber})`);
-                            }
-                        });
-
-                        // Store class details for this date
-                        subjectStats[subjectId].classDetails.push({
-                            date: record.date,
-                            lecture: record.lectureNumber || 1,
-                            absentStudents: absentStudents,
-                            presentCount: presentStudents.length,
-                            absentCount: absentStudents.length
-                        });
-                    }
-                });
-
-                const sortedStats = Object.values(subjectStats)
-                    .filter(stat => stat.totalStudents > 0)
-                    .sort((a, b) => {
-                        const percentageA = (a.totalPresent / a.totalStudents) * 100;
-                        const percentageB = (b.totalPresent / b.totalStudents) * 100;
-                        return percentageB - percentageA;
-                    });
-
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Subject-wise Attendance Summary', margin, yPosition);
-                yPosition += 15;
-
-                sortedStats.forEach(stat => {
-                    if (yPosition > 200) {
-                        doc.addPage();
-                        yPosition = margin;
-                    }
-
-                    const percentage = ((stat.totalPresent / stat.totalStudents) * 100).toFixed(1);
-                    const avgPerClass = (stat.totalStudents / stat.classes).toFixed(1);
-
-                    doc.setFontSize(12);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(stat.name, margin, yPosition);
-
-                    doc.setFont('helvetica', 'normal');
-                    yPosition += 8;
-                    doc.text(`Overall Attendance: ${percentage}%`, margin + 10, yPosition);
-                    yPosition += 6;
-                    doc.text(`Classes Conducted: ${stat.classes}`, margin + 10, yPosition);
-                    yPosition += 6;
-                    doc.text(`Average Students per Class: ${avgPerClass}`, margin + 10, yPosition);
-                    yPosition += 6;
-                    doc.text(`Total Present: ${stat.totalPresent} | Total Absent: ${stat.totalAbsent}`, margin + 10, yPosition);
-
-                    // Add detailed class-wise absent student information
-                    if (stat.classDetails && stat.classDetails.length > 0) {
-                        yPosition += 10;
-                        doc.setFontSize(10);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text('Class-wise Absent Students:', margin + 10, yPosition);
-                        yPosition += 6;
-
-                        doc.setFont('helvetica', 'normal');
-                        stat.classDetails.forEach(classDetail => {
-                            if (yPosition > 270) {
-                                doc.addPage();
-                                yPosition = margin;
-                            }
-
-                            const lectureInfo = classDetail.lecture ? ` (Lecture ${classDetail.lecture})` : '';
-                            doc.setFont('helvetica', 'bold');
-                            doc.text(`${classDetail.date}${lectureInfo}: ${classDetail.presentCount} Present, ${classDetail.absentCount} Absent`, margin + 15, yPosition);
-                            yPosition += 5;
-
-                            if (classDetail.absentStudents.length > 0) {
-                                doc.setFont('helvetica', 'normal');
-                                const absentText = `Absent: ${classDetail.absentStudents.join(', ')}`;
-
-                                // Handle long text by wrapping it
-                                const lines = doc.splitTextToSize(absentText, maxWidth - 40);
-                                lines.forEach(line => {
-                                    if (yPosition > 280) {
-                                        doc.addPage();
-                                        yPosition = margin;
-                                    }
-                                    doc.text(line, margin + 20, yPosition);
-                                    yPosition += 4;
-                                });
-                            } else {
-                                doc.setFont('helvetica', 'italic');
-                                doc.text('All students present ✓', margin + 20, yPosition);
-                                yPosition += 4;
-                            }
-                            yPosition += 3;
-                        });
-                        doc.setFontSize(12);
-                    }
-
-                    yPosition += 15;
-                });
-            }
-
-            // Export specific student summary to PDF
-            function exportSpecificStudentPDF(doc, margin, startY, maxWidth) {
-                let yPosition = startY;
-                const rollNumber = document.getElementById('specific-student-roll').value.trim();
-                const students = getStudents();
-                const student = students.find(s => s.roll === rollNumber);
-
-                if (!student) return;
-
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.text(`Detailed Report for ${student.name}`, margin, yPosition);
-                yPosition += 10;
+            });
+
+            yPos += 10;
+
+            // Attendance Categories
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('STUDENT CATEGORIZATION', 20, yPos);
+            yPos += 15;
+
+            const excellentStudents = validStats.filter(stat => (stat.present / stat.total * 100) >= 90);
+            const goodStudents = validStats.filter(stat => (stat.present / stat.total * 100) >= 75 && (stat.present / stat.total * 100) < 90);
+            const averageStudents = validStats.filter(stat => (stat.present / stat.total * 100) >= 60 && (stat.present / stat.total * 100) < 75);
+            const poorStudents = validStats.filter(stat => (stat.present / stat.total * 100) < 60);
+
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text(`• Excellent (≥90%): ${excellentStudents.length} students`, 20, yPos);
+            yPos += 10;
+            doc.text(`• Good (75-89%): ${goodStudents.length} students`, 20, yPos);
+            yPos += 10;
+            doc.text(`• Average (60-74%): ${averageStudents.length} students`, 20, yPos);
+            yPos += 10;
+            doc.text(`• Poor (<60%): ${poorStudents.length} students`, 20, yPos);
+            yPos += 20;
+
+            // At-Risk Students
+            if (poorStudents.length > 0) {
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.text('AT-RISK STUDENTS (Attendance < 60%)', 20, yPos);
+                yPos += 15;
 
                 doc.setFontSize(10);
-                doc.setFont('helvetica', 'normal');
-                doc.text(`Roll Number: ${student.roll}`, margin, yPosition);
-                yPosition += 15;
-
-                // Get student's attendance data
-                const attendance = getAttendance();
-                const subjects = getSubjects();
-                const studentAttendance = Object.values(attendance).filter(record => {
-                    const attendanceRecords = record.records || record.attendance || {};
-                    return attendanceRecords.hasOwnProperty(rollNumber);
-                });
-
-                const stats = { subjects: {}, totalPresent: 0, totalAbsent: 0, totalClasses: 0 };
-
-                studentAttendance.forEach(record => {
-                    const attendanceRecords = record.records || record.attendance || {};
-                    const status = attendanceRecords[rollNumber];
-                    const subjectName = record.subject || subjects.find(s => s.id == record.subjectId)?.name || 'Unknown Subject';
-
-                    if (!stats.subjects[subjectName]) {
-                        stats.subjects[subjectName] = { present: 0, absent: 0, total: 0, details: [] };
-                    }
-
-                    stats.subjects[subjectName].total++;
-                    stats.totalClasses++;
-
-                    if (status === 'present') {
-                        stats.subjects[subjectName].present++;
-                        stats.totalPresent++;
-                    } else {
-                        stats.subjects[subjectName].absent++;
-                        stats.totalAbsent++;
-                    }
-
-                    stats.subjects[subjectName].details.push({
-                        date: record.date,
-                        lecture: record.lectureNumber || 1,
-                        status: status
-                    });
-                });
-
-                const overallPercentage = ((stats.totalPresent / stats.totalClasses) * 100).toFixed(1);
-
-                doc.setFontSize(12);
-                doc.setFont('helvetica', 'bold');
-                doc.text(`Overall Attendance: ${overallPercentage}%`, margin, yPosition);
-                yPosition += 8;
-
-                doc.setFont('helvetica', 'normal');
-                doc.text(`Total Classes: ${stats.totalClasses} | Present: ${stats.totalPresent} | Absent: ${stats.totalAbsent}`, margin, yPosition);
-                yPosition += 10;
-
-                // Show overall absent summary if there are absences
-                if (stats.totalAbsent > 0) {
-                    const allAbsentDates = [];
-                    Object.entries(stats.subjects).forEach(([subjectName, subjectStat]) => {
-                        subjectStat.details.filter(detail => detail.status === 'absent').forEach(detail => {
-                            allAbsentDates.push(`${detail.date} (${subjectName} - Lecture ${detail.lecture})`);
-                        });
-                    });
-
-                    doc.setFontSize(11);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(255, 0, 0);
-                    doc.text(`⚠ Total Absences: ${stats.totalAbsent}`, margin, yPosition);
-                    doc.setTextColor(0, 0, 0);
-                    yPosition += 8;
-
-                    doc.setFontSize(10);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text('Complete Absent History:', margin, yPosition);
-                    yPosition += 5;
-
-                    allAbsentDates.forEach(absentEntry => {
-                        if (yPosition > 280) {
-                            doc.addPage();
-                            yPosition = margin;
-                        }
-                        doc.text(`• ${absentEntry}`, margin + 5, yPosition);
-                        yPosition += 4;
-                    });
-
-                    doc.setFontSize(12);
-                    yPosition += 5;
-                } else {
-                    doc.setFontSize(11);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(0, 150, 0);
-                    doc.text('🎉 Perfect Attendance - No Absences!', margin, yPosition);
-                    doc.setTextColor(0, 0, 0);
-                    doc.setFontSize(12);
-                    yPosition += 10;
-                }
-
-                yPosition += 5;
-
-                // Subject breakdown
-                Object.entries(stats.subjects).forEach(([subjectName, subjectStat]) => {
-                    if (yPosition > 240) {
+                doc.setFont(undefined, 'normal');
+                poorStudents.forEach(student => {
+                    if (yPos > 270) {
                         doc.addPage();
-                        yPosition = margin;
+                        yPos = 20;
                     }
-
-                    const subjectPercentage = ((subjectStat.present / subjectStat.total) * 100).toFixed(1);
-
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(subjectName, margin, yPosition);
-                    yPosition += 8;
-
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(`Attendance: ${subjectPercentage}% (${subjectStat.present}/${subjectStat.total})`, margin + 10, yPosition);
-                    yPosition += 8;
-
-                    // Show absent dates specifically
-                    const absentDetails = subjectStat.details.filter(detail => detail.status === 'absent');
-                    if (absentDetails.length > 0) {
-                        doc.setFontSize(10);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text(`Absent on ${absentDetails.length} occasion(s):`, margin + 10, yPosition);
-                        yPosition += 5;
-
-                        doc.setFont('helvetica', 'normal');
-                        absentDetails.forEach(detail => {
-                            if (yPosition > 280) {
-                                doc.addPage();
-                                yPosition = margin;
-                            }
-                            doc.text(`• ${detail.date} - Lecture ${detail.lecture}`, margin + 15, yPosition);
-                            yPosition += 4;
-                        });
-                        doc.setFontSize(12);
-                    } else {
-                        doc.setFontSize(10);
-                        doc.setFont('helvetica', 'italic');
-                        doc.text('Perfect attendance - No absences! ✓', margin + 10, yPosition);
-                        yPosition += 5;
-                        doc.setFontSize(12);
-                    }
-
-                    yPosition += 10;
+                    const percentage = ((student.present / student.total) * 100).toFixed(1);
+                    doc.text(`• ${student.name} (${student.roll}): ${percentage}% - ${student.present}/${student.total}`, 20, yPos);
+                    yPos += 8;
                 });
+                yPos += 10;
             }
 
-            // Add new student
-            function addStudent() {
-                const name = document.getElementById('student-name').value.trim();
-                const roll = document.getElementById('student-roll').value.trim();
-                const messageDiv = document.getElementById('manage-message');
+            // New page for detailed breakdown
+            doc.addPage();
+            yPos = 20;
 
-                if (!name || !roll) {
-                    showMessage(messageDiv, 'Please enter both name and roll number', 'error');
+            // Complete Student List with Details
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('COMPLETE STUDENT ATTENDANCE BREAKDOWN', 20, yPos);
+            yPos += 20;
+
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'bold');
+            doc.text('Roll', 20, yPos);
+            doc.text('Name', 40, yPos);
+            doc.text('Present', 90, yPos);
+            doc.text('Absent', 110, yPos);
+            doc.text('Total', 130, yPos);
+            doc.text('%', 150, yPos);
+            doc.text('1st Lec', 165, yPos);
+            doc.text('2nd Lec', 180, yPos);
+            doc.text('3rd Lec', 195, yPos);
+
+            doc.setLineWidth(0.3);
+            doc.line(20, yPos + 3, 210, yPos + 3);
+
+            yPos += 10;
+            doc.setFont(undefined, 'normal');
+
+            validStats.sort((a, b) => {
+                const percentageA = (a.present / a.total) * 100;
+                const percentageB = (b.present / b.total) * 100;
+                return percentageB - percentageA;
+            });
+
+            validStats.forEach(stat => {
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                const percentage = ((stat.present / stat.total) * 100).toFixed(1);
+
+                doc.text(stat.roll, 20, yPos);
+                doc.text(stat.name.substring(0, 20), 40, yPos);
+                doc.text(stat.present.toString(), 95, yPos);
+                doc.text(stat.absent.toString(), 115, yPos);
+                doc.text(stat.total.toString(), 135, yPos);
+                doc.text(`${percentage}%`, 150, yPos);
+
+                // Lecture-wise percentages
+                [1, 2, 3].forEach((lectureNum, index) => {
+                    const lectureData = stat.lectureWise[lectureNum];
+                    if (lectureData && lectureData.total > 0) {
+                        const lecturePercentage = ((lectureData.present / lectureData.total) * 100).toFixed(0);
+                        doc.text(`${lecturePercentage}%`, 165 + (index * 15), yPos);
+                    } else {
+                        doc.text('N/A', 165 + (index * 15), yPos);
+                    }
+                });
+
+                yPos += 8;
+            });
+
+            // Footer with recommendations
+            doc.addPage();
+            yPos = 20;
+
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('RECOMMENDATIONS', 20, yPos);
+            yPos += 20;
+
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+
+            if (parseFloat(avgAttendance) < 75) {
+                doc.text('• Overall attendance is below 75%. Consider implementing attendance improvement strategies.', 20, yPos);
+                yPos += 15;
+            }
+
+            if (poorStudents.length > 0) {
+                doc.text(`• ${poorStudents.length} students have attendance below 60%. Individual counseling recommended.`, 20, yPos);
+                yPos += 15;
+            }
+
+            // Find best and worst performing lecture
+            const lecturePerformances = [1, 2, 3].map(num => ({
+                lecture: num,
+                percentage: lectureStats[num].total > 0 ? (lectureStats[num].present / lectureStats[num].total * 100) : 0
+            })).filter(l => l.percentage > 0);
+
+            if (lecturePerformances.length > 1) {
+                lecturePerformances.sort((a, b) => b.percentage - a.percentage);
+                doc.text(`• Best performing lecture: ${lecturePerformances[0].lecture}${getOrdinalSuffix(lecturePerformances[0].lecture)} (${lecturePerformances[0].percentage.toFixed(1)}%)`, 20, yPos);
+                yPos += 10;
+                doc.text(`• Lowest performing lecture: ${lecturePerformances[lecturePerformances.length - 1].lecture}${getOrdinalSuffix(lecturePerformances[lecturePerformances.length - 1].lecture)} (${lecturePerformances[lecturePerformances.length - 1].percentage.toFixed(1)}%)`, 20, yPos);
+                yPos += 15;
+            }
+
+            doc.text('• Regular monitoring and follow-up with at-risk students is recommended.', 20, yPos);
+            yPos += 10;
+            doc.text('• Consider implementing make-up sessions for students with low attendance.', 20, yPos);
+
+            // Footer
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
+                doc.text('Generated by Attendance Tracker System', 105, 285, { align: 'center' });
+            }
+
+            doc.save(`${subjectName}_Detailed_Analysis_Report.pdf`);
+        }
+
+        // Add new student
+        function addStudent() {
+            const name = document.getElementById('student-name').value.trim();
+            const roll = document.getElementById('student-roll').value.trim();
+            const messageDiv = document.getElementById('manage-message');
+
+            if (!name || !roll) {
+                showMessage(messageDiv, 'Please enter both name and roll number', 'error');
+                return;
+            }
+
+            const students = getStudents();
+
+            if (students.some(student => student.roll === roll)) {
+                showMessage(messageDiv, 'Roll number already exists', 'error');
+                return;
+            }
+
+            const newStudent = {
+                id: Date.now(),
+                roll: roll,
+                name: name
+            };
+
+            students.push(newStudent);
+            setStudents(students);
+
+            document.getElementById('student-name').value = '';
+            document.getElementById('student-roll').value = '';
+
+            showMessage(messageDiv, `Student ${name} added successfully`, 'success');
+            loadCurrentStudents();
+        }
+
+        // Bulk import students
+        function bulkImportStudents() {
+            const bulkText = document.getElementById('bulk-import-text').value.trim();
+            const messageDiv = document.getElementById('manage-message');
+
+            if (!bulkText) {
+                showMessage(messageDiv, 'Please paste student data', 'error');
+                return;
+            }
+
+            const lines = bulkText.split('\n').filter(line => line.trim());
+            const students = getStudents();
+            const newStudents = [];
+            const errors = [];
+            const duplicates = [];
+
+            lines.forEach((line, index) => {
+                const lineNum = index + 1;
+
+                // Handle both comma and tab separated values
+                let parts;
+                if (line.includes('\t')) {
+                    parts = line.split('\t').map(part => part.trim());
+                } else if (line.includes(',')) {
+                    parts = line.split(',').map(part => part.trim());
+                } else {
+                    errors.push(`Line ${lineNum}: Invalid format (missing comma or tab)`);
                     return;
                 }
 
-                const students = getStudents();
+                if (parts.length < 2) {
+                    errors.push(`Line ${lineNum}: Missing roll number or name`);
+                    return;
+                }
 
-                // Check if roll number already exists
+                const roll = parts[0].trim();
+                const name = parts[1].trim();
+
+                if (!roll || !name) {
+                    errors.push(`Line ${lineNum}: Empty roll number or name`);
+                    return;
+                }
+
+                // Check for duplicates in existing students
                 if (students.some(student => student.roll === roll)) {
-                    showMessage(messageDiv, 'Roll number already exists', 'error');
+                    duplicates.push(`${roll} (${name})`);
                     return;
                 }
 
-                const newStudent = {
-                    id: Date.now(),
+                // Check for duplicates in current import
+                if (newStudents.some(student => student.roll === roll)) {
+                    errors.push(`Line ${lineNum}: Duplicate roll number ${roll} in import data`);
+                    return;
+                }
+
+                newStudents.push({
+                    id: Date.now() + index,
                     roll: roll,
                     name: name
-                };
+                });
+            });
 
-                students.push(newStudent);
+            // Show results
+            let message = '';
+            if (newStudents.length > 0) {
+                students.push(...newStudents);
                 setStudents(students);
-
-                // Clear inputs
-                document.getElementById('student-name').value = '';
-                document.getElementById('student-roll').value = '';
-
-                showMessage(messageDiv, `Student ${name} added successfully`, 'success');
+                message += `Successfully imported ${newStudents.length} students. `;
                 loadCurrentStudents();
             }
 
-            // Add new subject
-            function addSubject() {
-                const subjectName = document.getElementById('subject-name').value.trim();
-                const messageDiv = document.getElementById('manage-message');
-
-                if (!subjectName) {
-                    showMessage(messageDiv, 'Please enter subject name', 'error');
-                    return;
-                }
-
-                const subjects = getSubjects();
-
-                // Check if subject already exists
-                if (subjects.some(subject => subject.name === subjectName)) {
-                    showMessage(messageDiv, 'Subject already exists', 'error');
-                    return;
-                }
-
-                const newSubject = {
-                    id: Date.now(),
-                    name: subjectName
-                };
-
-                subjects.push(newSubject);
-                setSubjects(subjects);
-
-                // Clear input
-                document.getElementById('subject-name').value = '';
-
-                showMessage(messageDiv, `Subject ${subjectName} added successfully`, 'success');
-                loadCurrentSubjects();
+            if (duplicates.length > 0) {
+                message += `${duplicates.length} duplicates skipped: ${duplicates.slice(0, 3).join(', ')}${duplicates.length > 3 ? '...' : ''}. `;
             }
 
-            // Load current students for management
-            function loadCurrentStudents() {
-                const students = getStudents();
-                const container = document.getElementById('current-students');
+            if (errors.length > 0) {
+                message += `${errors.length} errors: ${errors.slice(0, 2).join('; ')}${errors.length > 2 ? '...' : ''}. `;
+            }
 
-                if (students.length === 0) {
-                    container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No students added yet.</p>';
-                    return;
-                }
+            const messageType = newStudents.length > 0 ? 'success' : (errors.length > 0 ? 'error' : 'error');
+            showMessage(messageDiv, message || 'No valid data found', messageType);
 
-                let html = '<h4 style="margin-bottom: 15px; color: var(--text-primary);">Current Students</h4>';
-                students.forEach((student, index) => {
-                    html += `
+            if (newStudents.length > 0) {
+                document.getElementById('bulk-import-text').value = '';
+            }
+        }
+
+        // Add new subject
+        function addSubject() {
+            const subjectName = document.getElementById('subject-name').value.trim();
+            const messageDiv = document.getElementById('manage-message');
+
+            if (!subjectName) {
+                showMessage(messageDiv, 'Please enter subject name', 'error');
+                return;
+            }
+
+            const subjects = getSubjects();
+
+            if (subjects.some(subject => subject.name === subjectName)) {
+                showMessage(messageDiv, 'Subject already exists', 'error');
+                return;
+            }
+
+            const newSubject = {
+                id: Date.now(),
+                name: subjectName
+            };
+
+            subjects.push(newSubject);
+            setSubjects(subjects);
+
+            document.getElementById('subject-name').value = '';
+
+            showMessage(messageDiv, `Subject ${subjectName} added successfully`, 'success');
+            loadCurrentSubjects();
+        }
+
+        // Load current students for management
+        function loadCurrentStudents() {
+            const students = getStudents();
+            const container = document.getElementById('current-students');
+
+            if (students.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No students added yet.</p>';
+                return;
+            }
+
+            let html = '<h4 style="margin-bottom: 15px; color: var(--text-primary);">Current Students</h4>';
+            students.forEach((student, index) => {
+                html += `
                     <div class="student-item">
                         <div class="student-info">
                             <div class="student-name">${student.name}</div>
                             <div class="student-roll">Roll: ${student.roll}</div>
                         </div>
-                        <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8em;" 
-                                onclick="removeStudent(${index})">
+                        <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8em;" onclick="removeStudent(${index})">
                             🗑️ Remove
                         </button>
                     </div>
                 `;
-                });
+            });
 
-                container.innerHTML = html;
+            container.innerHTML = html;
+        }
+
+        // Load current subjects for management
+        function loadCurrentSubjects() {
+            const subjects = getSubjects();
+            const container = document.getElementById('current-subjects');
+
+            if (subjects.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No subjects added yet.</p>';
+                return;
             }
 
-            // Load current subjects for management
-            function loadCurrentSubjects() {
-                const subjects = getSubjects();
-                const container = document.getElementById('current-subjects');
-
-                if (subjects.length === 0) {
-                    container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No subjects added yet.</p>';
-                    return;
-                }
-
-                let html = '<h4 style="margin-bottom: 15px; color: var(--text-primary);">Current Subjects</h4>';
-                subjects.forEach((subject, index) => {
-                    html += `
+            let html = '<h4 style="margin-bottom: 15px; color: var(--text-primary);">Current Subjects</h4>';
+            subjects.forEach((subject, index) => {
+                html += `
                     <div class="student-item">
                         <div class="student-info">
                             <div class="student-name">${subject.name}</div>
                         </div>
-                        <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8em;" 
-                                onclick="removeSubject(${index})">
+                        <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8em;" onclick="removeSubject(${index})">
                             🗑️ Remove
                         </button>
                     </div>
                 `;
-                });
+            });
 
-                container.innerHTML = html;
-            }
+            container.innerHTML = html;
+        }
 
-            // Remove student
-            function removeStudent(index) {
-                if (confirm('Are you sure you want to remove this student?')) {
-                    const students = getStudents();
-                    students.splice(index, 1);
-                    setStudents(students);
-                    loadCurrentStudents();
-                    showMessage(document.getElementById('manage-message'), 'Student removed successfully', 'success');
-                }
-            }
-
-            // Remove subject
-            function removeSubject(index) {
-                if (confirm('Are you sure you want to remove this subject? This will also remove all attendance records for this subject.')) {
-                    const subjects = getSubjects();
-                    const subjectToRemove = subjects[index];
-                    subjects.splice(index, 1);
-                    setSubjects(subjects);
-
-                    // Remove attendance records for this subject
-                    const attendance = getAttendance();
-                    Object.keys(attendance).forEach(key => {
-                        if (attendance[key].subjectId == subjectToRemove.id) {
-                            delete attendance[key];
-                        }
-                    });
-                    setAttendance(attendance);
-
-                    loadCurrentSubjects();
-                    showMessage(document.getElementById('manage-message'), 'Subject and related attendance records removed successfully', 'success');
-                }
-            }
-
-            // Export to PDF
-            function exportToPDF() {
-                const subjectSelect = document.getElementById('summary-subject');
-                const selectedSubjectId = subjectSelect.value;
-
-                if (!selectedSubjectId) {
-                    alert('Please select a subject first');
-                    return;
-                }
-
-                // Get subject name
-                const subjects = getSubjects();
-                const selectedSubject = subjects.find(s => s.id == selectedSubjectId);
-                const subjectName = selectedSubject ? selectedSubject.name : 'Unknown Subject';
-
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-
-                // Title
-                doc.setFontSize(20);
-                doc.text(`Attendance Report - ${subjectName}`, 20, 30);
-
-                // Date
-                doc.setFontSize(12);
-                doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 45);
-
+        // Remove student
+        function removeStudent(index) {
+            if (confirm('Are you sure you want to remove this student?')) {
                 const students = getStudents();
+                students.splice(index, 1);
+                setStudents(students);
+                loadCurrentStudents();
+                showMessage(document.getElementById('manage-message'), 'Student removed successfully', 'success');
+            }
+        }
+
+        // Remove subject
+        function removeSubject(index) {
+            if (confirm('Are you sure you want to remove this subject? This will also remove all attendance records for this subject.')) {
+                const subjects = getSubjects();
+                const subjectToRemove = subjects[index];
+                subjects.splice(index, 1);
+                setSubjects(subjects);
+
                 const attendance = getAttendance();
-                const subjectAttendance = Object.values(attendance).filter(record => record.subjectId == selectedSubjectId);
+                Object.keys(attendance).forEach(key => {
+                    if (attendance[key].subjectId == subjectToRemove.id) {
+                        delete attendance[key];
+                    }
+                });
+                setAttendance(attendance);
 
-                if (subjectAttendance.length === 0) {
-                    doc.text('No attendance records found for this subject.', 20, 70);
-                    doc.save(`${subjectName}_attendance_report.pdf`);
-                    return;
+                loadCurrentSubjects();
+                showMessage(document.getElementById('manage-message'), 'Subject and related attendance records removed successfully', 'success');
+            }
+        }
+
+        // Export data as JSON
+        function exportData() {
+            const data = {
+                students: getStudents(),
+                subjects: getSubjects(),
+                attendance: getAttendance(),
+                exportDate: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `attendance_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Import data from JSON
+        function importData() {
+            document.getElementById('import-file').click();
+        }
+
+        // Handle file import
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    if (confirm('This will replace all current data. Are you sure?')) {
+                        if (data.students) setStudents(data.students);
+                        if (data.subjects) setSubjects(data.subjects);
+                        if (data.attendance) setAttendance(data.attendance);
+
+                        showMessage(document.getElementById('manage-message'), 'Data imported successfully!', 'success');
+                        loadCurrentStudents();
+                        loadCurrentSubjects();
+                    }
+                } catch (error) {
+                    showMessage(document.getElementById('manage-message'), 'Invalid file format', 'error');
                 }
+            };
+            reader.readAsText(file);
+        }
 
-                // Calculate statistics
-                const studentStats = {};
-                students.forEach(student => {
-                    studentStats[student.roll] = {
-                        name: student.name,
-                        roll: student.roll,
-                        present: 0,
-                        absent: 0,
-                        total: 0
-                    };
-                });
+        // Clear functions
+        function clearAllAttendance() {
+            if (confirm('Are you sure you want to clear all attendance records? This cannot be undone.')) {
+                setAttendance({});
+                showMessage(document.getElementById('manage-message'), 'All attendance records cleared', 'success');
+            }
+        }
 
-                subjectAttendance.forEach(record => {
-                    const attendanceRecords = record.records || record.attendance || {};
-                    Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
-                        if (studentStats[rollNumber]) {
-                            studentStats[rollNumber].total++;
-                            if (status === 'present') {
-                                studentStats[rollNumber].present++;
-                            } else {
-                                studentStats[rollNumber].absent++;
-                            }
-                        }
-                    });
-                });
+        function clearAllStudents() {
+            if (confirm('Are you sure you want to clear all students? This will also clear all attendance records.')) {
+                setStudents([]);
+                setAttendance({});
+                showMessage(document.getElementById('manage-message'), 'All students and attendance records cleared', 'success');
+                loadCurrentStudents();
+            }
+        }
 
-                // Summary section
-                doc.setFontSize(14);
-                doc.text('Summary:', 20, 70);
+        function clearAllSubjects() {
+            if (confirm('Are you sure you want to clear all subjects? This will also clear all attendance records.')) {
+                setSubjects([]);
+                setAttendance({});
+                showMessage(document.getElementById('manage-message'), 'All subjects and attendance records cleared', 'success');
+                loadCurrentSubjects();
+            }
+        }
 
-                let yPos = 85;
-                doc.setFontSize(10);
-
-                // Sort by attendance percentage (lowest first)
-                const sortedStats = Object.values(studentStats)
-                    .filter(stat => stat.total > 0)
-                    .sort((a, b) => {
-                        const percentageA = (a.present / a.total) * 100;
-                        const percentageB = (b.present / b.total) * 100;
-                        return percentageA - percentageB;
-                    });
-
-                // Collect all absent students from all classes
-                const allAbsentStudents = new Set();
-                subjectAttendance.forEach(record => {
-                    const attendanceRecords = record.records || record.attendance || {};
-                    Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
-                        if (status === 'absent') {
-                            allAbsentStudents.add(rollNumber);
-                        }
-                    });
-                });
-
-                // Add absent students section at the top
-                if (allAbsentStudents.size > 0) {
-                    doc.setFontSize(12);
-                    doc.text('ABSENT STUDENTS (All Classes):', 20, yPos);
-                    yPos += 10;
-
-                    doc.setFontSize(10);
-                    const absentArray = Array.from(allAbsentStudents).sort();
-                    let line = '';
-                    absentArray.forEach((roll, index) => {
-                        if (line.length + roll.length > 50) {
-                            doc.text(line, 20, yPos);
-                            yPos += 8;
-                            line = roll;
-                        } else {
-                            line += (line ? ', ' : '') + roll;
-                        }
-                    });
-                    if (line) {
-                        doc.text(line, 20, yPos);
-                        yPos += 15;
+        // Event listeners and initialization
+        document.addEventListener('DOMContentLoaded', function () {
+            // Subject selection for attendance
+            document.getElementById('subject-select').addEventListener('change', function () {
+                loadStudentsForAttendance();
+                if (selectedLecture) {
+                    const subjectId = this.value;
+                    const date = document.getElementById('class-date').value;
+                    if (subjectId && date) {
+                        updateLectureInfo(subjectId, date, selectedLecture);
                     }
                 }
+            });
 
-                // Student-wise summary
-                doc.setFontSize(12);
-                doc.text('Student-wise Summary:', 20, yPos);
-                yPos += 15;
-
-                doc.setFontSize(9);
-                sortedStats.forEach(stat => {
-                    const percentage = ((stat.present / stat.total) * 100).toFixed(1);
-                    const text = `${stat.name} (${stat.roll}): ${stat.present}/${stat.total} (${percentage}%)`;
-
-                    if (yPos > 270) {
-                        doc.addPage();
-                        yPos = 20;
+            // Date change for attendance
+            document.getElementById('class-date').addEventListener('change', function () {
+                if (selectedLecture) {
+                    const subjectId = document.getElementById('subject-select').value;
+                    const date = this.value;
+                    if (subjectId && date) {
+                        updateLectureInfo(subjectId, date, selectedLecture);
                     }
-
-                    doc.text(text, 20, yPos);
-                    yPos += 8;
-                });
-
-                // Class-wise details
-                if (yPos > 200) {
-                    doc.addPage();
-                    yPos = 20;
-                } else {
-                    yPos += 10;
                 }
+            });
 
-                doc.setFontSize(12);
-                doc.text('Class-wise Details:', 20, yPos);
-                yPos += 15;
+            // Subject selection for tracking
+            document.getElementById('track-subject').addEventListener('change', showAttendanceSummary);
 
-                doc.setFontSize(9);
-                subjectAttendance.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(record => {
-                    if (yPos > 270) {
-                        doc.addPage();
-                        yPos = 20;
-                    }
+            // Enter key handlers for forms
+            document.getElementById('student-name').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') addStudent();
+            });
 
-                    const attendanceRecords = record.records || record.attendance || {};
-                    const totalStudents = Object.keys(attendanceRecords).length;
-                    const presentStudents = Object.values(attendanceRecords).filter(status => status === 'present').length;
-                    const percentage = ((presentStudents / totalStudents) * 100).toFixed(1);
+            document.getElementById('student-roll').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') addStudent();
+            });
 
-                    const lectureInfo = record.lectureNumber ? ` - ${record.lectureNumber}${getOrdinalSuffix(record.lectureNumber)} Lecture` : '';
-                    doc.text(`Date: ${new Date(record.date).toLocaleDateString()}${lectureInfo} - ${presentStudents}/${totalStudents} (${percentage}%)`, 20, yPos);
-                    yPos += 8;
+            document.getElementById('subject-name').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') addSubject();
+            });
 
-                    // Show absent students for this class
-                    const absentStudents = Object.entries(attendanceRecords)
-                        .filter(([roll, status]) => status === 'absent')
-                        .map(([roll, status]) => roll);
-
-                    if (absentStudents.length > 0) {
-                        doc.text(`Absent: ${absentStudents.join(', ')}`, 25, yPos);
-                        yPos += 8;
-                    }
-                    yPos += 3;
-                });
-
-                doc.save(`${subjectName}_attendance_report.pdf`);
-            }
-
-            // Export data as JSON
-            function exportData() {
-                const data = {
-                    students: getStudents(),
-                    subjects: getSubjects(),
-                    attendance: getAttendance(),
-                    exportDate: new Date().toISOString()
-                };
-
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `attendance_backup_${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }
-
-            // Import data from JSON
-            function importData() {
-                document.getElementById('import-file').click();
-            }
-
-            // Handle file import
-            function handleFileImport(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    try {
-                        const data = JSON.parse(e.target.result);
-
-                        if (confirm('This will replace all current data. Are you sure?')) {
-                            if (data.students) setStudents(data.students);
-                            if (data.subjects) setSubjects(data.subjects);
-                            if (data.attendance) setAttendance(data.attendance);
-
-                            showMessage(document.getElementById('manage-message'), 'Data imported successfully!', 'success');
-                            loadCurrentStudents();
-                            loadCurrentSubjects();
-                        }
-                    } catch (error) {
-                        showMessage(document.getElementById('manage-message'), 'Invalid file format', 'error');
-                    }
-                };
-                reader.readAsText(file);
-            }
-
-            // Clear functions
-            function clearAllAttendance() {
-                if (confirm('Are you sure you want to clear all attendance records? This cannot be undone.')) {
-                    setAttendance({});
-                    showMessage(document.getElementById('manage-message'), 'All attendance records cleared', 'success');
-                }
-            }
-
-            function clearAllStudents() {
-                if (confirm('Are you sure you want to clear all students? This will also clear all attendance records.')) {
-                    setStudents([]);
-                    setAttendance({});
-                    showMessage(document.getElementById('manage-message'), 'All students and attendance records cleared', 'success');
-                    loadCurrentStudents();
-                }
-            }
-
-            function clearAllSubjects() {
-                if (confirm('Are you sure you want to clear all subjects? This will also clear all attendance records.')) {
-                    setSubjects([]);
-                    setAttendance({});
-                    showMessage(document.getElementById('manage-message'), 'All subjects and attendance records cleared', 'success');
-                    loadCurrentSubjects();
-                }
-            }
-
-            // Show message helper
-            function showMessage(element, message, type = 'error') {
-                element.textContent = message;
-                element.className = `message ${type}`;
-                element.classList.remove('hidden');
-                setTimeout(() => element.classList.add('hidden'), 5000);
-            }
-
-            // Event listeners
-            document.addEventListener('DOMContentLoaded', function () {
-                // Tab functionality
-                document.querySelectorAll('.tab').forEach(tab => {
-                    tab.addEventListener('click', () => {
-                        switchTab(tab.dataset.tab);
-                    });
-                });
-
-                // Subject selection for attendance
-                document.getElementById('subject-select').addEventListener('change', function () {
-                    loadStudentsForAttendance();
-                    if (selectedLecture) {
-                        const subjectId = this.value;
-                        const date = document.getElementById('class-date').value;
-                        if (subjectId && date) {
-                            updateLectureInfo(subjectId, date, selectedLecture);
-                        }
-                    }
-                });
-
-                // Date change for attendance
-                document.getElementById('class-date').addEventListener('change', function () {
-                    if (selectedLecture) {
-                        const subjectId = document.getElementById('subject-select').value;
-                        const date = this.value;
-                        if (subjectId && date) {
-                            updateLectureInfo(subjectId, date, selectedLecture);
-                        }
-                    }
-                });
-
-                // Lecture selection buttons
-                document.getElementById('lecture-1').addEventListener('click', () => selectLecture(1));
-                document.getElementById('lecture-2').addEventListener('click', () => selectLecture(2));
-                document.getElementById('lecture-3').addEventListener('click', () => selectLecture(3));
-
-                // Subject selection for tracking
-                document.getElementById('track-subject').addEventListener('change', showAttendanceSummary);
-
-                // Subject selection for summary
-                document.getElementById('summary-subject').addEventListener('change', showStudentSummary);
-
-                // Save attendance button
-                document.getElementById('save-attendance').addEventListener('click', saveAttendance);
-
-                // Add student button
-                document.getElementById('add-student').addEventListener('click', addStudent);
-
-                // Add subject button
-                document.getElementById('add-subject').addEventListener('click', addSubject);
-
-                // Export buttons
-                document.getElementById('export-pdf').addEventListener('click', exportToPDF);
-                document.getElementById('export-data').addEventListener('click', exportData);
-
-                // Import data
-                document.getElementById('import-data').addEventListener('click', importData);
-                document.getElementById('backup-data').addEventListener('click', exportData);
-                document.getElementById('import-file').addEventListener('change', handleFileImport);
-
-                // Clear buttons
-                document.getElementById('clear-attendance').addEventListener('click', clearAllAttendance);
-                document.getElementById('clear-students').addEventListener('click', clearAllStudents);
-                document.getElementById('clear-subjects').addEventListener('click', clearAllSubjects);
-
-                // Enter key handlers for forms
-                document.getElementById('student-name').addEventListener('keypress', function (e) {
-                    if (e.key === 'Enter') addStudent();
-                });
-
-                document.getElementById('student-roll').addEventListener('keypress', function (e) {
-                    if (e.key === 'Enter') addStudent();
-                });
-
-                document.getElementById('subject-name').addEventListener('keypress', function (e) {
-                    if (e.key === 'Enter') addSubject();
-                });
-
-                // Comprehensive summary event listeners
-                document.getElementById('summary-type').addEventListener('change', handleSummaryTypeChange);
-                document.getElementById('generate-summary').addEventListener('click', generateComprehensiveSummary);
-                document.getElementById('export-summary-pdf').addEventListener('click', exportSummaryToPDF);
-
-                // Initialize the app
-                switchTab('attendance');
-            }); // Close DOMContentLoaded
-        } // Close main script block
-
-        // End of main script block
+            // Initialize the app
+            switchTab('attendance');
+        });
     </script>
 </body>
 
