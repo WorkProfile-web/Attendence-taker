@@ -335,7 +335,19 @@
                 <select id="summary-type" class="input">
                     <option value="student">Student-wise Summary</option>
                     <option value="subject">Subject-wise Summary</option>
+                    <option value="specific-student">Specific Student Summary</option>
                 </select>
+
+                <!-- Specific Student Search -->
+                <div id="specific-student-section" class="hidden"
+                    style="margin: 8px 0; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+                    <input type="text" id="student-roll-search" class="input"
+                        placeholder="Enter roll number (e.g., 2024-CS-001)" style="margin-bottom: 8px;">
+                    <button class="action-btn" onclick="generateSpecificStudentSummary()" style="background: #2196f3;">
+                        🔍 Search Student
+                    </button>
+                </div>
+
                 <select id="summary-subject" class="input">
                     <option value="">All Subjects</option>
                 </select>
@@ -965,6 +977,24 @@
         // Track Tab Functions
         function loadTrackTab() {
             loadSubjectOptions('track-subject');
+
+            // Debug logging to help identify "Unknown" subject issues
+            const subjects = getSubjects();
+            const attendance = getAttendanceArray();
+
+            console.log('Debug - Subjects:', subjects);
+            console.log('Debug - Subjects count:', subjects.length);
+            console.log('Debug - Attendance sessions:', attendance.length);
+
+            // Check for orphaned subject IDs in attendance
+            const subjectIds = subjects.map(s => s.id);
+            const attendanceSubjectIds = [...new Set(attendance.map(a => a.subjectId))];
+            const orphanedIds = attendanceSubjectIds.filter(id => !subjectIds.includes(id));
+
+            if (orphanedIds.length > 0) {
+                console.warn('Found orphaned subject IDs in attendance:', orphanedIds);
+                console.log('Available subject IDs:', subjectIds);
+            }
         }
 
         function loadAttendanceForEdit() {
@@ -1441,7 +1471,144 @@
 
                 yPos += 10; // Space between sessions
             });
-        }        // Manage Tab Functions
+        }
+
+        function generateSpecificStudentSummary() {
+            const rollNumber = document.getElementById('student-roll-search').value.trim();
+
+            if (!rollNumber) {
+                alert('Please enter a roll number');
+                return;
+            }
+
+            const students = getStudents();
+            const subjects = getSubjects();
+            let attendance = getAttendanceArray();
+
+            // Find student (case insensitive)
+            const student = students.find(s => s.roll.toLowerCase() === rollNumber.toLowerCase());
+
+            if (!student) {
+                document.getElementById('summary-content').innerHTML = `
+                    <div style="text-align: center; color: #e53935; padding: 20px;">
+                        ❌ Student with roll number "${rollNumber}" not found.
+                    </div>
+                `;
+                return;
+            }
+
+            // Collect all attendance records for this student
+            const studentAttendance = [];
+
+            attendance.forEach(session => {
+                const record = session.records.find(r => r.studentId === student.id);
+                if (record) {
+                    const subject = subjects.find(s => s.id === session.subjectId);
+                    studentAttendance.push({
+                        date: session.date,
+                        subjectId: session.subjectId,
+                        subjectName: subject ? subject.name : `Unknown (ID: ${session.subjectId})`,
+                        lecture: session.lectureNumber,
+                        status: record.status
+                    });
+                }
+            });
+
+            if (studentAttendance.length === 0) {
+                document.getElementById('summary-content').innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 20px;">
+                        📝 No attendance records found for ${student.roll} - ${student.name}
+                    </div>
+                `;
+                return;
+            }
+
+            // Group by subject
+            const subjectStats = {};
+            studentAttendance.forEach(record => {
+                if (!subjectStats[record.subjectId]) {
+                    subjectStats[record.subjectId] = {
+                        name: record.subjectName,
+                        present: 0,
+                        absent: 0,
+                        total: 0,
+                        records: []
+                    };
+                }
+
+                subjectStats[record.subjectId].total++;
+                if (record.status === 'present') {
+                    subjectStats[record.subjectId].present++;
+                } else {
+                    subjectStats[record.subjectId].absent++;
+                }
+
+                subjectStats[record.subjectId].records.push(record);
+            });
+
+            // Generate HTML
+            let html = `
+                <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin: 0; color: #2196f3;">👤 ${student.roll} - ${student.name}</h3>
+                </div>
+            `;
+
+            Object.keys(subjectStats).forEach(subjectId => {
+                const stats = subjectStats[subjectId];
+                const attendanceRate = ((stats.present / stats.total) * 100).toFixed(1);
+
+                html += `
+                    <div style="border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 16px; overflow: hidden;">
+                        <div style="background: #2196f3; color: white; padding: 12px;">
+                            <h4 style="margin: 0;">${stats.name}</h4>
+                            <div style="font-size: 14px; opacity: 0.9;">
+                                Present: ${stats.present} | Absent: ${stats.absent} | Total: ${stats.total} | Rate: ${attendanceRate}%
+                            </div>
+                        </div>
+                        <div style="padding: 12px;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background: #f5f5f5;">
+                                        <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Date</th>
+                                        <th style="padding: 8px; text-align: center; border-bottom: 1px solid #ddd;">Lecture</th>
+                                        <th style="padding: 8px; text-align: center; border-bottom: 1px solid #ddd;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+
+                // Sort by date (newest first)
+                stats.records.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                stats.records.forEach(record => {
+                    const statusColor = record.status === 'present' ? '#43a047' : '#e53935';
+                    const statusIcon = record.status === 'present' ? '✓' : '✗';
+
+                    html += `
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee;">${record.date}</td>
+                            <td style="padding: 8px; text-align: center; border-bottom: 1px solid #eee;">
+                                ${record.lecture}${record.lecture === 1 ? 'st' : record.lecture === 2 ? 'nd' : 'rd'}
+                            </td>
+                            <td style="padding: 8px; text-align: center; border-bottom: 1px solid #eee; color: ${statusColor}; font-weight: bold;">
+                                ${statusIcon} ${record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('summary-content').innerHTML = html;
+        }
+
+        // Manage Tab Functions
         function loadManageTab() {
             loadStudentsList();
             loadSubjectsList();
@@ -1767,6 +1934,21 @@
             // Summary tab
             document.getElementById('generate-summary').addEventListener('click', generateSummary);
             document.getElementById('download-pdf').addEventListener('click', downloadPDF);
+
+            // Summary type change listener
+            document.getElementById('summary-type').addEventListener('change', function () {
+                const specificSection = document.getElementById('specific-student-section');
+                if (this.value === 'specific-student') {
+                    specificSection.classList.remove('hidden');
+                } else {
+                    specificSection.classList.add('hidden');
+                }
+            });
+
+            // Enter key for student search
+            document.getElementById('student-roll-search').addEventListener('keypress', e => {
+                if (e.key === 'Enter') generateSpecificStudentSummary();
+            });
 
             // Manage tab
             document.getElementById('add-student').addEventListener('click', addStudent);
