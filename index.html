@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance App</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            background: #f5f5f5;
+            color: #222;
+        }
+
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            background: #fff;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            font-size: 16px;
+            cursor: pointer;
+            border-top: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .tab.active {
+            border-top: 2px solid #1976d2;
+            color: #1976d2;
+            font-weight: 500;
+        }
+
+        .container {
+            padding: 16px;
+            padding-bottom: 64px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .attendance-btns {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 32px;
+        }
+
+        .btn {
+            flex: 1;
+            margin: 0 8px;
+            padding: 32px 0;
+            font-size: 24px;
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn.present {
+            background: #43a047;
+        }
+
+        .btn.absent {
+            background: #e53935;
+        }
+
+        .btn:active {
+            opacity: 0.8;
+        }
+
+        .input,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        .list {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            margin: 16px 0;
+            padding: 8px;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            background: #1976d2;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .action-btn.delete {
+            background: #e53935;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        .summary-table th {
+            background: #f0f0f0;
+        }
+
+        .summary-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .top-bar {
+            background: #1976d2;
+            color: #fff;
+            padding: 16px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .auth-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .sync-status.online {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .sync-status.offline {
+            background: #ffeaa7;
+            color: #d68910;
+        }
+
+        .sync-status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 8px;
+            }
+
+            .btn {
+                font-size: 20px;
+                padding: 24px 0;
+            }
+
+            .top-bar {
+                font-size: 18px;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-bar">
+        Attendance App
+        <div class="sync-status offline" id="sync-status">
+            <span>●</span> Offline Mode
+        </div>
+    </div>
+    <div class="container">
+        <!-- Take Attendance Tab -->
+        <div id="tab-attendance" class="tab-content">
+            <div style="margin-bottom: 20px;">
+                <select id="attendance-subject" class="input">
+                    <option value="">Select Subject</option>
+                </select>
+                <input type="date" id="attendance-date" class="input">
+            </div>
+            <div id="attendance-student-card"
+                style="text-align: center; background: #fff; padding: 24px; border-radius: 12px; margin: 20px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <div id="student-info" style="margin-bottom: 20px;">
+                    <div style="font-size: 24px; font-weight: 500;" id="student-roll">Roll: -</div>
+                    <div style="font-size: 20px; color: #666;" id="student-name">Name: -</div>
+                </div>
+                <div class="attendance-btns">
+                    <button class="btn present" id="mark-present">Present</button>
+                    <button class="btn absent" id="mark-absent">Absent</button>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="action-btn" id="finish-attendance"
+                        style="display: none; background: #43a047; font-size: 16px; padding: 12px 24px;">
+                        ✓ Done - Sync Data
+                    </button>
+                </div>
+            </div>
+            <div style="text-align: center; color: #666;">
+                <div id="attendance-progress">Select subject and date to start</div>
+            </div>
+        </div>
+
+        <!-- Track/Edit Attendance Tab -->
+        <div id="tab-track" class="tab-content hidden">
+            <div style="margin-bottom: 20px;">
+                <select id="track-subject" class="input">
+                    <option value="">Select Subject</option>
+                </select>
+                <input type="date" id="track-date" class="input">
+                <button class="action-btn" id="load-attendance">Load Attendance</button>
+            </div>
+            <div id="track-list"></div>
+        </div>
+
+        <!-- Summary Tab -->
+        <div id="tab-summary" class="tab-content hidden">
+            <div style="margin-bottom: 20px;">
+                <select id="summary-type" class="input">
+                    <option value="student">Student-wise Summary</option>
+                    <option value="subject">Subject-wise Summary</option>
+                </select>
+                <select id="summary-subject" class="input">
+                    <option value="">All Subjects</option>
+                </select>
+                <div style="display: flex; gap: 8px; margin: 8px 0;">
+                    <input type="date" id="summary-date-from" class="input" placeholder="From Date (Optional)"
+                        style="flex: 1;">
+                    <input type="date" id="summary-date-to" class="input" placeholder="To Date (Optional)"
+                        style="flex: 1;">
+                </div>
+                <button class="action-btn" id="generate-summary">Generate Summary</button>
+                <button class="action-btn" id="download-pdf" style="background: #e91e63;">Download PDF</button>
+            </div>
+            <div id="summary-content"></div>
+        </div>
+
+        <!-- Manage Tab -->
+        <div id="tab-manage" class="tab-content hidden">
+            <!-- Cloud Sync (Free) -->
+            <div class="auth-section">
+                <h3>Free Cloud Sync</h3>
+                <div id="sync-section">
+                    <div style="margin-bottom: 16px;">
+                        <input type="text" id="sync-code" placeholder="Enter your sync code" class="input">
+                        <button class="action-btn" id="connect-sync">Connect</button>
+                    </div>
+                    <div id="sync-info" class="hidden">
+                        <p>Sync Code: <strong id="current-sync-code"></strong></p>
+                        <button class="action-btn" id="disconnect-sync">Disconnect</button>
+                        <button class="action-btn" id="manual-sync">Sync Now</button>
+                    </div>
+                    <button class="action-btn" id="generate-code" style="background: #e91e63;">Generate New
+                        Code</button>
+                </div>
+                <p style="font-size:12px;color:#666;">
+                    Generate a sync code to share data across devices.
+                    Uses free cloud storage. No account needed!
+                </p>
+            </div>
+
+            <!-- Cloud Sync (Free) -->
+            <div class="auth-section">
+                <h3>Free Cloud Sync</h3>
+                <div id="sync-section">
+                    <div style="margin-bottom: 16px;">
+                        <input type="text" id="sync-code" placeholder="Enter your sync code" class="input">
+                        <button class="action-btn" id="connect-sync">Connect</button>
+                    </div>
+                    <div id="sync-info" class="hidden">
+                        <p>Sync Code: <strong id="current-sync-code"></strong></p>
+                        <button class="action-btn" id="disconnect-sync">Disconnect</button>
+                        <button class="action-btn" id="manual-sync">Sync Now</button>
+                    </div>
+                    <button class="action-btn" id="generate-code" style="background: #e91e63;">Generate New
+                        Code</button>
+                </div>
+                <p style="font-size:12px;color:#666;">
+                    Generate a sync code to share data across devices.
+                    Uses free cloud storage. No account needed!
+                </p>
+            </div>
+
+            <!-- Data Management -->
+            <div style="margin-bottom:16px; border-bottom: 1px solid #eee; padding-bottom: 16px;">
+                <h3>Local Data Management</h3>
+                <button class="action-btn" id="backup-btn">Backup Data</button>
+                <input type="file" id="import-file" accept="application/json" style="display:none">
+                <button class="action-btn" id="import-btn">Import Data</button>
+                <button class="action-btn delete" id="delete-all-btn">Delete All Records</button>
+            </div>
+            <div id="manage-message" style="color:#e53935;font-weight:500;margin-bottom:16px;"></div>
+
+            <!-- Students Management -->
+            <div style="margin-bottom: 24px;">
+                <h3>Students</h3>
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <input type="text" id="student-roll" placeholder="Roll Number" class="input" style="flex: 1;">
+                    <input type="text" id="student-name" placeholder="Student Name" class="input" style="flex: 2;">
+                    <button class="action-btn" id="add-student">Add</button>
+                </div>
+                <div id="students-list" class="list"></div>
+            </div>
+
+            <!-- Subjects Management -->
+            <div>
+                <h3>Subjects</h3>
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <input type="text" id="subject-name" placeholder="Subject Name" class="input" style="flex: 1;">
+                    <button class="action-btn" id="add-subject">Add</button>
+                </div>
+                <div id="subjects-list" class="list"></div>
+            </div>
+        </div>
+    </div>
+    <div class="tab-bar">
+        <div class="tab active" data-tab="attendance">Take Attendance</div>
+        <div class="tab" data-tab="track">Track/Edit</div>
+        <div class="tab" data-tab="summary">Summary</div>
+        <div class="tab" data-tab="manage">Manage</div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Free Cloud Sync using JSONBin.io (completely free)
+        const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
+        let syncCode = localStorage.getItem('syncCode') || null;
+        let isConnected = !!syncCode;
+
+        // Update sync status indicator
+        function updateSyncStatus(status = 'offline', message = 'Offline Mode') {
+            const syncStatus = document.getElementById('sync-status');
+            syncStatus.className = `sync-status ${status}`;
+
+            const statusMessages = {
+                'online': '● Cloud Synced',
+                'offline': '● Offline Mode',
+                'syncing': '● Syncing...',
+                'error': '● Sync Error'
+            };
+
+            syncStatus.innerHTML = `<span>●</span> ${statusMessages[status] || message}`;
+        }
+
+        // Generate a new sync code (creates a new JSONBin)
+        async function generateSyncCode() {
+            try {
+                updateSyncStatus('syncing', 'Creating sync code...');
+
+                const data = getAllAppData();
+                const response = await fetch(JSONBIN_API, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    syncCode = result.metadata.id;
+                    localStorage.setItem('syncCode', syncCode);
+                    isConnected = true;
+                    updateSyncUI();
+                    updateSyncStatus('online');
+                    showMessage('Sync code generated! Share this code with other devices.', 'success');
+                } else {
+                    throw new Error('Failed to create sync code');
+                }
+            } catch (error) {
+                console.error('Error generating sync code:', error);
+                updateSyncStatus('error');
+                showMessage('Failed to generate sync code. Try again.', 'error');
+            }
+        }
+
+        // Connect to existing sync code
+        async function connectToSync() {
+            const inputCode = document.getElementById('sync-code').value.trim();
+            if (!inputCode) {
+                showMessage('Please enter a sync code', 'error');
+                return;
+            }
+
+            try {
+                updateSyncStatus('syncing', 'Connecting...');
+
+                const response = await fetch(`${JSONBIN_API}/${inputCode}/latest`);
+
+                if (response.ok) {
+                    const result = await response.json();
+                    setAllAppData(result.record);
+
+                    syncCode = inputCode;
+                    localStorage.setItem('syncCode', syncCode);
+                    isConnected = true;
+                    updateSyncUI();
+                    updateSyncStatus('online');
+                    showMessage('Connected! Data synced successfully.', 'success');
+
+                    // Refresh current tab
+                    const activeTab = document.querySelector('.tab.active').dataset.tab;
+                    if (activeTab === 'manage') loadManageTab();
+                } else {
+                    throw new Error('Invalid sync code or network error');
+                }
+            } catch (error) {
+                console.error('Error connecting to sync:', error);
+                updateSyncStatus('error');
+                showMessage('Failed to connect. Check your sync code.', 'error');
+            }
+        }
+
+        // Sync data to cloud
+        async function syncToCloud() {
+            if (!isConnected || !syncCode) return;
+
+            try {
+                updateSyncStatus('syncing');
+
+                const data = getAllAppData();
+                const response = await fetch(`${JSONBIN_API}/${syncCode}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    updateSyncStatus('online');
+                } else {
+                    throw new Error('Sync failed');
+                }
+            } catch (error) {
+                console.error('Error syncing to cloud:', error);
+                updateSyncStatus('error');
+            }
+        }
+
+        // Load data from cloud
+        async function loadFromCloud() {
+            if (!isConnected || !syncCode) return;
+
+            try {
+                updateSyncStatus('syncing');
+
+                const response = await fetch(`${JSONBIN_API}/${syncCode}/latest`);
+
+                if (response.ok) {
+                    const result = await response.json();
+                    setAllAppData(result.record);
+                    updateSyncStatus('online');
+
+                    // Refresh current tab
+                    const activeTab = document.querySelector('.tab.active').dataset.tab;
+                    if (activeTab === 'manage') loadManageTab();
+                } else {
+                    throw new Error('Failed to load data');
+                }
+            } catch (error) {
+                console.error('Error loading from cloud:', error);
+                updateSyncStatus('error');
+            }
+        }
+
+        // Disconnect from sync
+        function disconnectSync() {
+            if (confirm('Disconnect from cloud sync? Local data will remain.')) {
+                syncCode = null;
+                localStorage.removeItem('syncCode');
+                isConnected = false;
+                updateSyncUI();
+                updateSyncStatus('offline');
+                showMessage('Disconnected from cloud sync', 'success');
+            }
+        }
+
+        // Update sync UI
+        function updateSyncUI() {
+            const syncInfo = document.getElementById('sync-info');
+            const currentSyncCode = document.getElementById('current-sync-code');
+
+            if (isConnected && syncCode) {
+                syncInfo.classList.remove('hidden');
+                currentSyncCode.textContent = syncCode;
+                document.getElementById('sync-code').value = '';
+            } else {
+                syncInfo.classList.add('hidden');
+            }
+        }
+
+        // Show message to user
+        function showMessage(message, type = 'error') {
+            const manageMsg = document.getElementById('manage-message');
+            manageMsg.textContent = message;
+            manageMsg.style.color = type === 'success' ? '#43a047' : '#e53935';
+            setTimeout(() => manageMsg.textContent = '', 5000);
+        }
+
+        // Auto-sync when data changes (removed - now manual only)
+        function autoSync() {
+            // No auto-sync - manual sync only via "Done" button
+        }        // Data storage utilities (modified for manual sync)
+        function getStudents() {
+            return JSON.parse(localStorage.getItem('students') || '[]');
+        }
+
+        function setStudents(students) {
+            localStorage.setItem('students', JSON.stringify(students));
+            // No auto-sync for students/subjects management
+        }
+
+        function getSubjects() {
+            return JSON.parse(localStorage.getItem('subjects') || '[]');
+        }
+
+        function setSubjects(subjects) {
+            localStorage.setItem('subjects', JSON.stringify(subjects));
+            // No auto-sync for students/subjects management
+        }
+
+        function getAttendance() {
+            return JSON.parse(localStorage.getItem('attendance') || '[]');
+        }
+
+        function setAttendance(attendance) {
+            localStorage.setItem('attendance', JSON.stringify(attendance));
+            // No auto-sync for attendance - manual sync only
+        }
+
+        // Manual sync function for "Done" button
+        function finishAndSync() {
+            if (isConnected) {
+                updateSyncStatus('syncing', 'Syncing attendance...');
+                syncToCloud().then(() => {
+                    resetAttendanceSession();
+                    updateSyncStatus('online');
+                }).catch(() => {
+                    resetAttendanceSession();
+                    updateSyncStatus('error', 'Sync failed');
+                });
+            } else {
+                resetAttendanceSession();
+                updateSyncStatus('offline');
+            }
+        }
+
+        function resetAttendanceSession() {
+            currentAttendanceSession = null;
+            currentStudentIndex = 0;
+            document.getElementById('finish-attendance').style.display = 'none';
+            document.getElementById('student-roll').textContent = 'Roll: -';
+            document.getElementById('student-name').textContent = 'Name: -';
+            document.getElementById('attendance-progress').textContent = 'Attendance saved locally!';
+        }
+
+        // Global variables
+        let currentStudentIndex = 0;
+        let currentAttendanceSession = null;
+
+        // Tab management
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            // Load tab-specific data
+            if (tabName === 'attendance') loadAttendanceTab();
+            if (tabName === 'track') loadTrackTab();
+            if (tabName === 'summary') loadSummaryTab();
+            if (tabName === 'manage') loadManageTab();
+        }
+
+        // Attendance Tab Functions
+        function loadAttendanceTab() {
+            loadSubjectOptions('attendance-subject');
+            document.getElementById('attendance-date').value = new Date().toISOString().split('T')[0];
+        }
+
+        function loadSubjectOptions(selectId) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Select Subject</option>';
+            getSubjects().forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject.id;
+                option.textContent = subject.name;
+                select.appendChild(option);
+            });
+        }
+
+        function startAttendance() {
+            const subjectId = document.getElementById('attendance-subject').value;
+            const date = document.getElementById('attendance-date').value;
+
+            if (!subjectId || !date) {
+                alert('Please select subject and date');
+                return;
+            }
+
+            const students = getStudents();
+            if (students.length === 0) {
+                alert('No students found. Add students first.');
+                return;
+            }
+
+            currentAttendanceSession = {
+                subjectId: subjectId,
+                date: date,
+                records: []
+            };
+            currentStudentIndex = 0;
+            showCurrentStudent();
+        }
+
+        function showCurrentStudent() {
+            const students = getStudents();
+            if (currentStudentIndex >= students.length) {
+                finishAttendance();
+                return;
+            }
+
+            const student = students[currentStudentIndex];
+            document.getElementById('student-roll').textContent = `Roll: ${student.roll}`;
+            document.getElementById('student-name').textContent = `Name: ${student.name}`;
+            document.getElementById('attendance-progress').textContent =
+                `Student ${currentStudentIndex + 1} of ${students.length}`;
+        }
+
+        function markAttendance(status) {
+            if (!currentAttendanceSession) {
+                startAttendance();
+                return;
+            }
+
+            const students = getStudents();
+            const student = students[currentStudentIndex];
+
+            currentAttendanceSession.records.push({
+                studentId: student.id,
+                roll: student.roll,
+                name: student.name,
+                status: status
+            });
+
+            currentStudentIndex++;
+            showCurrentStudent();
+        }
+
+        function finishAttendance() {
+            const attendance = getAttendance();
+            attendance.push({
+                id: Date.now(),
+                subjectId: currentAttendanceSession.subjectId,
+                date: currentAttendanceSession.date,
+                records: currentAttendanceSession.records
+            });
+            setAttendance(attendance);
+
+            // Show Done button
+            document.getElementById('finish-attendance').style.display = 'block';
+            document.getElementById('student-roll').textContent = 'Attendance Complete!';
+            document.getElementById('student-name').textContent = 'Click "Done" to sync data';
+            document.getElementById('attendance-progress').textContent = 'All students marked';
+        }        // Track Tab Functions
+        function loadTrackTab() {
+            loadSubjectOptions('track-subject');
+        }
+
+        function loadAttendanceForEdit() {
+            const subjectId = document.getElementById('track-subject').value;
+            const date = document.getElementById('track-date').value;
+
+            if (!subjectId || !date) {
+                alert('Please select subject and date');
+                return;
+            }
+
+            const attendance = getAttendance();
+            const session = attendance.find(a => a.subjectId === subjectId && a.date === date);
+
+            const trackList = document.getElementById('track-list');
+            trackList.innerHTML = '';
+
+            if (!session) {
+                trackList.innerHTML = '<div style="text-align:center;color:#666;">No attendance found for this date.</div>';
+                return;
+            }
+
+            session.records.forEach((record, index) => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <div>
+                        <strong>${record.roll}</strong> - ${record.name}
+                    </div>
+                    <div class="actions">
+                        <button class="action-btn ${record.status === 'present' ? '' : 'delete'}" 
+                                onclick="toggleAttendance('${session.id}', ${index})">
+                            ${record.status === 'present' ? 'Present' : 'Absent'}
+                        </button>
+                    </div>
+                `;
+                trackList.appendChild(item);
+            });
+        }
+
+        function toggleAttendance(sessionId, recordIndex) {
+            const attendance = getAttendance();
+            const session = attendance.find(a => a.id == sessionId);
+            const record = session.records[recordIndex];
+            record.status = record.status === 'present' ? 'absent' : 'present';
+            setAttendance(attendance);
+            loadAttendanceForEdit();
+        }
+
+        // Summary Tab Functions
+        function loadSummaryTab() {
+            loadSubjectOptions('summary-subject');
+        }
+
+        function generateSummary() {
+            const type = document.getElementById('summary-type').value;
+            const subjectFilter = document.getElementById('summary-subject').value;
+            const dateFrom = document.getElementById('summary-date-from').value;
+            const dateTo = document.getElementById('summary-date-to').value;
+
+            const students = getStudents();
+            const subjects = getSubjects();
+            let attendance = getAttendance();
+
+            // Apply filters
+            if (subjectFilter) {
+                attendance = attendance.filter(a => a.subjectId === subjectFilter);
+            }
+
+            if (dateFrom) {
+                attendance = attendance.filter(a => a.date >= dateFrom);
+            }
+
+            if (dateTo) {
+                attendance = attendance.filter(a => a.date <= dateTo);
+            }
+
+            const summaryContent = document.getElementById('summary-content');
+
+            if (type === 'student') {
+                generateStudentSummary(students, subjects, attendance, summaryContent);
+            } else {
+                generateSubjectSummary(students, subjects, attendance, summaryContent);
+            }
+        } function generateStudentSummary(students, subjects, attendance, container) {
+            let html = '<table class="summary-table"><thead><tr><th>Roll</th><th>Name</th><th>Present</th><th>Absent</th><th>Total</th><th>Percentage</th></tr></thead><tbody>';
+
+            students.forEach(student => {
+                let present = 0, absent = 0;
+                const absentDates = [];
+
+                attendance.forEach(session => {
+                    const record = session.records.find(r => r.studentId === student.id);
+                    if (record) {
+                        if (record.status === 'present') present++;
+                        else {
+                            absent++;
+                            const subject = subjects.find(s => s.id === session.subjectId);
+                            absentDates.push(`${session.date} (${subject ? subject.name : 'Unknown'})`);
+                        }
+                    }
+                });
+
+                const total = present + absent;
+                const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
+
+                html += `<tr>
+                    <td>${student.roll}</td>
+                    <td>${student.name}</td>
+                    <td>${present}</td>
+                    <td>${absent}</td>
+                    <td>${total}</td>
+                    <td>${percentage}%</td>
+                </tr>`;
+
+                if (absentDates.length > 0) {
+                    html += `<tr><td colspan="6" style="font-size:12px;color:#666;padding-left:20px;">Absent on: ${absentDates.join(', ')}</td></tr>`;
+                }
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function generateSubjectSummary(students, subjects, attendance, container) {
+            let html = '<table class="summary-table"><thead><tr><th>Subject</th><th>Date</th><th>Present</th><th>Absent</th><th>Total</th></tr></thead><tbody>';
+
+            attendance.forEach(session => {
+                const subject = subjects.find(s => s.id === session.subjectId);
+                const present = session.records.filter(r => r.status === 'present').length;
+                const absent = session.records.filter(r => r.status === 'absent').length;
+
+                html += `<tr>
+                    <td>${subject ? subject.name : 'Unknown'}</td>
+                    <td>${session.date}</td>
+                    <td>${present}</td>
+                    <td>${absent}</td>
+                    <td>${present + absent}</td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const type = document.getElementById('summary-type').value;
+            const subjectFilter = document.getElementById('summary-subject').value;
+            const dateFrom = document.getElementById('summary-date-from').value;
+            const dateTo = document.getElementById('summary-date-to').value;
+
+            // Title
+            const title = type === 'student' ? 'Student-wise Attendance Summary' : 'Subject-wise Attendance Summary';
+            doc.setFontSize(16);
+            doc.text(title, 20, 20);
+
+            // Filters info
+            doc.setFontSize(10);
+            let filterInfo = `Generated on: ${new Date().toLocaleDateString()}`;
+            if (subjectFilter) {
+                const subjects = getSubjects();
+                const subject = subjects.find(s => s.id === subjectFilter);
+                filterInfo += ` | Subject: ${subject ? subject.name : 'Unknown'}`;
+            }
+            if (dateFrom || dateTo) {
+                filterInfo += ` | Date Range: ${dateFrom || 'Start'} to ${dateTo || 'End'}`;
+            }
+            doc.text(filterInfo, 20, 30);
+
+            const students = getStudents();
+            const subjects = getSubjects();
+            let attendance = getAttendance();
+
+            // Apply same filters as summary
+            if (subjectFilter) {
+                attendance = attendance.filter(a => a.subjectId === subjectFilter);
+            }
+            if (dateFrom) {
+                attendance = attendance.filter(a => a.date >= dateFrom);
+            }
+            if (dateTo) {
+                attendance = attendance.filter(a => a.date <= dateTo);
+            }
+
+            let yPos = 50;
+
+            if (type === 'student') {
+                // Student-wise PDF with detailed absent dates
+                doc.setFontSize(12);
+                doc.text('Student-wise Attendance Report', 20, yPos);
+                yPos += 15;
+
+                doc.setFontSize(10);
+                doc.text('Roll | Name | Present | Absent | Total | % | Absent Dates', 20, yPos);
+                yPos += 10;
+
+                students.forEach(student => {
+                    let present = 0, absent = 0;
+                    const absentDates = [];
+
+                    attendance.forEach(session => {
+                        const record = session.records.find(r => r.studentId === student.id);
+                        if (record) {
+                            if (record.status === 'present') {
+                                present++;
+                            } else {
+                                absent++;
+                                const subject = subjects.find(s => s.id === session.subjectId);
+                                absentDates.push(`${session.date} (${subject ? subject.name : 'Unknown'})`);
+                            }
+                        }
+                    });
+
+                    const total = present + absent;
+                    const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
+
+                    // Main student info
+                    doc.text(`${student.roll} | ${student.name} | ${present} | ${absent} | ${total} | ${percentage}%`, 20, yPos);
+                    yPos += 8;
+
+                    // Absent dates (if any)
+                    if (absentDates.length > 0) {
+                        doc.setFontSize(8);
+                        const absentText = `Absent on: ${absentDates.join(', ')}`;
+                        const splitText = doc.splitTextToSize(absentText, 170);
+                        doc.text(splitText, 25, yPos);
+                        yPos += splitText.length * 4;
+                        doc.setFontSize(10);
+                    }
+
+                    yPos += 3;
+
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                });
+            } else {
+                // Subject-wise PDF
+                doc.setFontSize(12);
+                doc.text('Subject-wise Attendance Report', 20, yPos);
+                yPos += 15;
+
+                doc.setFontSize(10);
+                doc.text('Subject | Date | Present | Absent | Total', 20, yPos);
+                yPos += 10;
+
+                attendance.forEach(session => {
+                    const subject = subjects.find(s => s.id === session.subjectId);
+                    const present = session.records.filter(r => r.status === 'present').length;
+                    const absent = session.records.filter(r => r.status === 'absent').length;
+
+                    doc.text(`${subject ? subject.name : 'Unknown'} | ${session.date} | ${present} | ${absent} | ${present + absent}`, 20, yPos);
+                    yPos += 8;
+
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                });
+            }
+
+            const filename = `attendance-${type}-${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(filename);
+        }        // Manage Tab Functions
+        function loadManageTab() {
+            loadStudentsList();
+            loadSubjectsList();
+        }
+
+        function addStudent() {
+            const roll = document.getElementById('student-roll').value.trim();
+            const name = document.getElementById('student-name').value.trim();
+
+            if (!roll || !name) {
+                alert('Please enter both roll number and name');
+                return;
+            }
+
+            const students = getStudents();
+            if (students.find(s => s.roll === roll)) {
+                alert('Student with this roll number already exists');
+                return;
+            }
+
+            students.push({
+                id: Date.now(),
+                roll: roll,
+                name: name
+            });
+
+            setStudents(students);
+            document.getElementById('student-roll').value = '';
+            document.getElementById('student-name').value = '';
+            loadStudentsList();
+        }
+
+        function deleteStudent(id) {
+            if (confirm('Are you sure you want to delete this student?')) {
+                const students = getStudents().filter(s => s.id !== id);
+                setStudents(students);
+                loadStudentsList();
+            }
+        }
+
+        function loadStudentsList() {
+            const students = getStudents();
+            const list = document.getElementById('students-list');
+
+            if (students.length === 0) {
+                list.innerHTML = '<div style="text-align:center;color:#666;">No students added yet.</div>';
+                return;
+            }
+
+            list.innerHTML = students.map(student => `
+                <div class="list-item">
+                    <div><strong>${student.roll}</strong> - ${student.name}</div>
+                    <div class="actions">
+                        <button class="action-btn delete" onclick="deleteStudent(${student.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addSubject() {
+            const name = document.getElementById('subject-name').value.trim();
+
+            if (!name) {
+                alert('Please enter subject name');
+                return;
+            }
+
+            const subjects = getSubjects();
+            if (subjects.find(s => s.name === name)) {
+                alert('Subject with this name already exists');
+                return;
+            }
+
+            subjects.push({
+                id: Date.now(),
+                name: name
+            });
+
+            setSubjects(subjects);
+            document.getElementById('subject-name').value = '';
+            loadSubjectsList();
+        }
+
+        function deleteSubject(id) {
+            if (confirm('Are you sure you want to delete this subject?')) {
+                const subjects = getSubjects().filter(s => s.id !== id);
+                setSubjects(subjects);
+                loadSubjectsList();
+            }
+        }
+
+        function loadSubjectsList() {
+            const subjects = getSubjects();
+            const list = document.getElementById('subjects-list');
+
+            if (subjects.length === 0) {
+                list.innerHTML = '<div style="text-align:center;color:#666;">No subjects added yet.</div>';
+                return;
+            }
+
+            list.innerHTML = subjects.map(subject => `
+                <div class="list-item">
+                    <div>${subject.name}</div>
+                    <div class="actions">
+                        <button class="action-btn delete" onclick="deleteSubject(${subject.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Utility: get all app data
+        function getAllAppData() {
+            return {
+                students: getStudents(),
+                subjects: getSubjects(),
+                attendance: getAttendance(),
+            };
+        }
+
+        // Utility: set all app data
+        function setAllAppData(data) {
+            if (data.students) setStudents(data.students);
+            if (data.subjects) setSubjects(data.subjects);
+            if (data.attendance) setAttendance(data.attendance);
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize sync status
+            updateSyncUI();
+            if (isConnected) {
+                updateSyncStatus('online');
+                loadFromCloud(); // Load latest data on startup
+            } else {
+                updateSyncStatus('offline');
+            }
+
+            // Sync event listeners
+            document.getElementById('generate-code').addEventListener('click', generateSyncCode);
+            document.getElementById('connect-sync').addEventListener('click', connectToSync);
+            document.getElementById('disconnect-sync').addEventListener('click', disconnectSync);
+            document.getElementById('manual-sync').addEventListener('click', loadFromCloud);
+
+            // Tab switching
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+            });
+
+            // Attendance tab
+            document.getElementById('attendance-subject').addEventListener('change', () => {
+                if (currentAttendanceSession) {
+                    if (confirm('This will restart attendance taking. Continue?')) {
+                        currentAttendanceSession = null;
+                        currentStudentIndex = 0;
+                    }
+                }
+            });
+
+            document.getElementById('mark-present').addEventListener('click', () => markAttendance('present'));
+            document.getElementById('mark-absent').addEventListener('click', () => markAttendance('absent'));
+            document.getElementById('finish-attendance').addEventListener('click', finishAndSync);
+
+            // Track tab
+            document.getElementById('load-attendance').addEventListener('click', loadAttendanceForEdit);
+
+            // Summary tab
+            document.getElementById('generate-summary').addEventListener('click', generateSummary);
+            document.getElementById('download-pdf').addEventListener('click', downloadPDF);
+
+            // Manage tab
+            document.getElementById('add-student').addEventListener('click', addStudent);
+            document.getElementById('add-subject').addEventListener('click', addSubject);
+
+            // Enter key support
+            document.getElementById('student-roll').addEventListener('keypress', e => {
+                if (e.key === 'Enter') document.getElementById('student-name').focus();
+            });
+            document.getElementById('student-name').addEventListener('keypress', e => {
+                if (e.key === 'Enter') addStudent();
+            });
+            document.getElementById('subject-name').addEventListener('keypress', e => {
+                if (e.key === 'Enter') addSubject();
+            });
+
+            // Initialize Google API
+            if (GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID') {
+                initializeGoogleAPI();
+            }
+
+            // Google Auth events
+            document.getElementById('sign-in-btn').addEventListener('click', signIn);
+            document.getElementById('sign-out-btn').addEventListener('click', signOut);
+            document.getElementById('sync-now-btn').addEventListener('click', () => {
+                syncDataToGoogle();
+            });
+
+            // Backup/Import functionality
+            const backupBtn = document.getElementById('backup-btn');
+            const importBtn = document.getElementById('import-btn');
+            const importFile = document.getElementById('import-file');
+            const deleteAllBtn = document.getElementById('delete-all-btn');
+            const manageMsg = document.getElementById('manage-message');
+
+            if (backupBtn) {
+                backupBtn.onclick = function () {
+                    const data = getAllAppData();
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'attendance_backup_' + new Date().toISOString().slice(0, 10) + '.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                };
+            }
+
+            if (importBtn && importFile) {
+                importBtn.onclick = function () {
+                    importFile.click();
+                };
+                importFile.onchange = function (e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function (evt) {
+                        try {
+                            const data = JSON.parse(evt.target.result);
+                            setAllAppData(data);
+                            manageMsg.textContent = 'Data imported successfully!';
+                            manageMsg.style.color = '#43a047';
+                            setTimeout(() => manageMsg.textContent = '', 3000);
+                            loadManageTab();
+                        } catch (err) {
+                            manageMsg.textContent = 'Invalid file format!';
+                            manageMsg.style.color = '#e53935';
+                            setTimeout(() => manageMsg.textContent = '', 3000);
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+            }
+
+            if (deleteAllBtn) {
+                deleteAllBtn.onclick = function () {
+                    if (confirm('Are you sure you want to delete ALL records? This cannot be undone.')) {
+                        localStorage.removeItem('students');
+                        localStorage.removeItem('subjects');
+                        localStorage.removeItem('attendance');
+                        manageMsg.textContent = 'All records deleted.';
+                        manageMsg.style.color = '#e53935';
+                        setTimeout(() => manageMsg.textContent = '', 3000);
+                        loadManageTab();
+                    }
+                };
+            }
+
+            // Initialize
+            loadAttendanceTab();
+        });
+    </script>
+</body>
+
+</html>
