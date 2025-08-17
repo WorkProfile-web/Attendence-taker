@@ -650,18 +650,19 @@
 
         // Manual sync function for "Done" button
         function finishAndSync() {
+            // Always complete the attendance session first
+            resetAttendanceSession();
+
+            // Try to sync only if connected, but don't show errors for failed sync
             if (isConnected) {
                 updateSyncStatus('syncing', 'Syncing attendance...');
                 syncToCloud().then(() => {
-                    resetAttendanceSession();
-                    updateSyncStatus('online');
+                    updateSyncStatus('online', 'Data saved locally and synced');
                 }).catch(() => {
-                    resetAttendanceSession();
-                    updateSyncStatus('error', 'Sync failed');
+                    updateSyncStatus('offline', 'Data saved locally (sync unavailable)');
                 });
             } else {
-                resetAttendanceSession();
-                updateSyncStatus('offline');
+                updateSyncStatus('offline', 'Data saved locally');
             }
         }
 
@@ -1062,16 +1063,24 @@
         }
 
         function generateSubjectSummary(students, subjects, attendance, container) {
-            let html = '<table class="summary-table"><thead><tr><th>Subject</th><th>Date</th><th>Present</th><th>Absent</th><th>Total</th></tr></thead><tbody>';
+            console.log('Subjects available:', subjects); // Debug
+            console.log('Attendance data:', attendance); // Debug
+
+            let html = '<table class="summary-table"><thead><tr><th>Subject</th><th>Date</th><th>Lecture</th><th>Present</th><th>Absent</th><th>Total</th></tr></thead><tbody>';
 
             attendance.forEach(session => {
+                console.log('Looking for subject ID:', session.subjectId); // Debug
                 const subject = subjects.find(s => s.id === session.subjectId);
+                console.log('Found subject:', subject); // Debug
+
                 const present = session.records.filter(r => r.status === 'present').length;
                 const absent = session.records.filter(r => r.status === 'absent').length;
+                const lectureInfo = session.lectureNumber ? `${session.lectureNumber}${getOrdinalSuffix(session.lectureNumber)}` : 'N/A';
 
                 html += `<tr>
-                    <td>${subject ? subject.name : 'Unknown'}</td>
+                    <td>${subject ? subject.name : 'Unknown (ID: ' + session.subjectId + ')'}</td>
                     <td>${session.date}</td>
+                    <td>${lectureInfo}</td>
                     <td>${present}</td>
                     <td>${absent}</td>
                     <td>${present + absent}</td>
