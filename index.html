@@ -1415,25 +1415,77 @@
         }
 
         function generateSubjectSummary(students, subjects, attendance, container) {
-            let html = '<table class="summary-table"><thead><tr><th>Subject</th><th>Date</th><th>Lecture</th><th>Present</th><th>Absent</th><th>Total</th></tr></thead><tbody>';
+            let html = '<div class="subject-summary">';
 
             attendance.forEach(session => {
                 const subject = findSubjectById(subjects, session.subjectId);
-                const present = session.records.filter(r => r.status === 'present').length;
-                const absent = session.records.filter(r => r.status === 'absent').length;
-                const lectureInfo = session.lectureNumber ? `${session.lectureNumber}${getOrdinalSuffix(session.lectureNumber)}` : 'N/A';
+                const subjectName = subject ? subject.name : `Unknown (ID: ${session.subjectId})`;
 
-                html += `<tr>
-                    <td>${subject ? subject.name : 'Unknown (ID: ' + session.subjectId + ')'}</td>
-                    <td>${session.date}</td>
-                    <td>${lectureInfo}</td>
-                    <td>${present}</td>
-                    <td>${absent}</td>
-                    <td>${present + absent}</td>
-                </tr>`;
+                const presentStudents = [];
+                const absentStudents = [];
+
+                session.records.forEach(record => {
+                    const student = students.find(s => s.id === record.studentId);
+                    if (student) {
+                        if (record.status === 'present') {
+                            presentStudents.push(student);
+                        } else {
+                            absentStudents.push(student);
+                        }
+                    }
+                });
+
+                const total = presentStudents.length + absentStudents.length;
+                const attendanceRate = total > 0 ? ((presentStudents.length / total) * 100).toFixed(1) : 0;
+                const lectureInfo = session.lectureNumber ? `${session.lectureNumber}${getOrdinalSuffix(session.lectureNumber)} Lecture` : 'Lecture';
+
+                // Session card
+                html += `
+                    <div style="background: white; border-radius: 8px; padding: 20px; margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 4px solid ${attendanceRate >= 80 ? '#4caf50' : attendanceRate >= 60 ? '#ff9800' : '#f44336'};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="margin: 0; color: #2196f3;">${session.date} - ${subjectName}</h3>
+                            <span style="background: ${attendanceRate >= 80 ? '#4caf50' : attendanceRate >= 60 ? '#ff9800' : '#f44336'}; color: white; padding: 4px 12px; border-radius: 20px; font-weight: bold;">${attendanceRate}%</span>
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <strong>${lectureInfo}</strong> | Present: <span style="color: #4caf50;">${presentStudents.length}</span> | Absent: <span style="color: #f44336;">${absentStudents.length}</span> | Total: ${total}
+                        </div>`;
+
+                // Show absent students prominently
+                if (absentStudents.length > 0) {
+                    html += `
+                        <div style="background: #ffebee; border: 1px solid #ffcdd2; border-radius: 4px; padding: 12px; margin-bottom: 12px;">
+                            <h4 style="margin: 0 0 8px 0; color: #f44336;">🚨 Absent Students (${absentStudents.length}):</h4>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">`;
+
+                    absentStudents.sort((a, b) => a.roll.localeCompare(b.roll)).forEach(student => {
+                        html += `<span style="background: #f44336; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${student.roll}</span>`;
+                    });
+
+                    html += `
+                            </div>
+                        </div>`;
+                } else {
+                    html += `
+                        <div style="background: #e8f5e8; border: 1px solid #c8e6c9; border-radius: 4px; padding: 12px; margin-bottom: 12px;">
+                            <h4 style="margin: 0; color: #4caf50;">✅ Perfect Attendance - No Absents!</h4>
+                        </div>`;
+                }
+
+                // Show present students (condensed)
+                if (presentStudents.length > 0) {
+                    const presentRolls = presentStudents.sort((a, b) => a.roll.localeCompare(b.roll)).map(s => s.roll).join(', ');
+                    html += `
+                        <div style="background: #f1f8e9; border: 1px solid #dcedc8; border-radius: 4px; padding: 12px;">
+                            <h4 style="margin: 0 0 8px 0; color: #4caf50;">Present Students (${presentStudents.length}):</h4>
+                            <div style="font-size: 12px; color: #666; line-height: 1.4;">${presentRolls}</div>
+                        </div>`;
+                }
+
+                html += `</div>`;
             });
 
-            html += '</tbody></table>';
+            html += '</div>';
             container.innerHTML = html;
         } function downloadPDF() {
             const { jsPDF } = window.jspdf;
@@ -1903,71 +1955,83 @@
                 doc.text(`${lectureInfo} | Present: ${presentStudents.length} | Absent: ${absentStudents.length} | Total: ${totalStudents}`, 20, yPos);
                 yPos += 15;
 
-                // Two columns for present and absent
-                const leftColumnX = 20;
-                const rightColumnX = 110;
-                let leftY = yPos;
-                let rightY = yPos;
-
-                // Present students (left column)
-                if (presentStudents.length > 0) {
-                    doc.setFontSize(10);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(76, 175, 80);
-                    doc.text('Present Students:', leftColumnX, leftY);
-                    leftY += 8;
-
-                    doc.setFont('helvetica', 'normal');
-                    doc.setTextColor(0, 0, 0);
-                    presentStudents.slice(0, 15).forEach(student => { // Limit to prevent overflow
-                        doc.setFontSize(8);
-                        doc.text(`• ${student.roll} - ${student.name.substring(0, 15)}`, leftColumnX, leftY);
-                        leftY += 4;
-                    });
-
-                    if (presentStudents.length > 15) {
-                        doc.setFont('helvetica', 'italic');
-                        doc.text(`... and ${presentStudents.length - 15} more`, leftColumnX, leftY);
-                        leftY += 4;
-                    }
-                } else {
-                    doc.setFontSize(9);
-                    doc.setFont('helvetica', 'italic');
-                    doc.setTextColor(100, 100, 100);
-                    doc.text('No students present', leftColumnX, leftY);
-                    leftY += 8;
-                }
-
-                // Absent students (right column)
+                // Prioritize showing ALL absent students since that's more important for tracking
                 if (absentStudents.length > 0) {
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(244, 67, 54);
-                    doc.text('Absent Students:', rightColumnX, rightY);
-                    rightY += 8;
+                    doc.text('ABSENT STUDENTS (All):', 20, yPos);
+                    yPos += 8;
 
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(0, 0, 0);
-                    absentStudents.slice(0, 15).forEach(student => { // Limit to prevent overflow
-                        doc.setFontSize(8);
-                        doc.text(`• ${student.roll} - ${student.name.substring(0, 15)}`, rightColumnX, rightY);
-                        rightY += 4;
+                    doc.setFontSize(9);
+
+                    // Show ALL absent students in a compact format
+                    let currentY = yPos;
+                    let currentX = 20;
+                    const columnWidth = 85;
+                    const maxColumns = 2;
+                    let currentColumn = 0;
+
+                    absentStudents.forEach((student, index) => {
+                        const text = `• ${student.roll}`;
+                        doc.text(text, currentX, currentY);
+
+                        currentY += 4;
+
+                        // If we've filled this column and there are more students, move to next column
+                        if (currentY > 250 && currentColumn < maxColumns - 1 && index < absentStudents.length - 1) {
+                            currentColumn++;
+                            currentX = 20 + (currentColumn * columnWidth);
+                            currentY = yPos;
+                        }
+
+                        // If all columns are full, start a new page
+                        if (currentY > 250 && currentColumn >= maxColumns - 1) {
+                            const pageBreakResult = checkPageBreak(doc, currentY, 50, pageNum, totalPages, 'SUBJECT ATTENDANCE REPORT', subtitle);
+                            currentY = pageBreakResult.y;
+                            pageNum = pageBreakResult.pageNum;
+                            currentX = 20;
+                            currentColumn = 0;
+                        }
                     });
 
-                    if (absentStudents.length > 15) {
-                        doc.setFont('helvetica', 'italic');
-                        doc.text(`... and ${absentStudents.length - 15} more`, rightColumnX, rightY);
-                        rightY += 4;
-                    }
+                    yPos = Math.max(currentY, yPos + (Math.ceil(absentStudents.length / 20) * 4));
+                    yPos += 10;
                 } else {
-                    doc.setFontSize(9);
-                    doc.setFont('helvetica', 'italic');
-                    doc.setTextColor(100, 100, 100);
-                    doc.text('No absent students! 🎉', rightColumnX, rightY);
-                    rightY += 8;
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(76, 175, 80);
+                    doc.text('✓ PERFECT ATTENDANCE - No Absents!', 20, yPos);
+                    yPos += 12;
                 }
 
-                yPos = Math.max(leftY, rightY) + 15; // Space between sessions
+                // Show present students summary (less detailed since absence is more important to track)
+                if (presentStudents.length > 0) {
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(76, 175, 80);
+                    doc.text(`Present Students (${presentStudents.length}):`, 20, yPos);
+                    yPos += 6;
+
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(8);
+
+                    // Show present students in a more compact format
+                    const presentRolls = presentStudents.map(s => s.roll).join(', ');
+                    const lines = doc.splitTextToSize(presentRolls, 170);
+
+                    lines.forEach(line => {
+                        doc.text(line, 20, yPos);
+                        yPos += 4;
+                    });
+
+                    yPos += 5;
+                }
+
+                yPos += 15; // Space between sessions
             });
 
             addPDFFooter(doc, pageNum, totalPages);
