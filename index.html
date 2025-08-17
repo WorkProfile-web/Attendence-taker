@@ -1162,7 +1162,7 @@
                         <tbody>`;
 
                     Object.keys(subjectAttendance).forEach(subjectId => {
-                        const subject = subjects.find(s => s.id === subjectId);
+                        const subject = findSubjectById(subjects, subjectId);
                         const subjectName = subject ? subject.name : `Unknown (ID: ${subjectId})`;
                         const data = subjectAttendance[subjectId];
                         const total = data.present + data.absent;
@@ -1181,7 +1181,7 @@
 
                     // Detailed session list for each subject
                     Object.keys(subjectAttendance).forEach(subjectId => {
-                        const subject = subjects.find(s => s.id === subjectId);
+                        const subject = findSubjectById(subjects, subjectId);
                         const subjectName = subject ? subject.name : `Unknown (ID: ${subjectId})`;
                         const data = subjectAttendance[subjectId];
 
@@ -1222,7 +1222,7 @@
             let html = '<table class="summary-table"><thead><tr><th>Subject</th><th>Date</th><th>Lecture</th><th>Present</th><th>Absent</th><th>Total</th></tr></thead><tbody>';
 
             attendance.forEach(session => {
-                const subject = subjects.find(s => s.id === session.subjectId);
+                const subject = findSubjectById(subjects, session.subjectId);
                 const present = session.records.filter(r => r.status === 'present').length;
                 const absent = session.records.filter(r => r.status === 'absent').length;
                 const lectureInfo = session.lectureNumber ? `${session.lectureNumber}${getOrdinalSuffix(session.lectureNumber)}` : 'N/A';
@@ -1389,7 +1389,7 @@
                 attendance.forEach(session => {
                     const record = session.records.find(r => r.studentId === student.id);
                     if (record) {
-                        const subject = subjects.find(s => s.id === session.subjectId);
+                        const subject = findSubjectById(subjects, session.subjectId);
                         const subjectName = subject ? subject.name : 'Unknown';
 
                         if (!subjectStats[subjectName]) {
@@ -1505,7 +1505,7 @@
             attendance.forEach(session => {
                 const record = session.records.find(r => r.studentId === student.id);
                 if (record) {
-                    const subject = subjects.find(s => s.id === session.subjectId);
+                    const subject = findSubjectById(subjects, session.subjectId);
                     const subjectName = subject ? subject.name : 'Unknown';
 
                     if (!subjectStats[subjectName]) {
@@ -1645,7 +1645,7 @@
 
             sortedKeys.forEach((key, index) => {
                 const session = attendanceByDateSubject[key];
-                const subject = subjects.find(s => s.id === session.subjectId);
+                const subject = findSubjectById(subjects, session.subjectId);
                 const subjectName = subject ? subject.name : `Unknown (${session.subjectId})`;
                 const lectureInfo = session.lectureNumber ? `${session.lectureNumber}${getOrdinalSuffix(session.lectureNumber)} Lecture` : 'Lecture';
 
@@ -1819,7 +1819,7 @@
             attendance.forEach(session => {
                 const record = session.records.find(r => r.studentId === student.id);
                 if (record) {
-                    const subject = subjects.find(s => s.id === session.subjectId);
+                    const subject = findSubjectById(subjects, session.subjectId);
                     studentAttendance.push({
                         date: session.date,
                         subjectId: session.subjectId,
