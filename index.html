@@ -574,7 +574,7 @@
                     })
                 ];
 
-                // Try first service
+                // Try first service (suppress blocked request errors)
                 try {
                     const response = await services[0]();
                     if (response.ok) {
@@ -582,7 +582,8 @@
                         return Promise.resolve();
                     }
                 } catch (e) {
-                    console.log('Primary sync service failed, using local storage only');
+                    // Silently handle blocked requests - this is normal
+                    // Browser extensions/ad blockers often block external tracking
                 }
 
                 // If cloud fails, still mark as "synced" locally
@@ -590,7 +591,7 @@
                 return Promise.reject('Cloud sync unavailable');
 
             } catch (error) {
-                console.error('Error syncing to cloud:', error);
+                // Suppress external service errors in console
                 updateSyncStatus('error');
                 return Promise.reject(error);
             }
@@ -762,11 +763,21 @@
 
         function loadSubjectOptions(selectId) {
             const select = document.getElementById(selectId);
+            const subjects = getSubjects();
+
+            // Debug logging for subject loading
+            console.log('=== DEBUG loadSubjectOptions ===');
+            console.log('Loading subjects for:', selectId);
+            console.log('Subjects data:', subjects);
+            console.log('Subject IDs and types:', subjects.map(s => ({ id: s.id, name: s.name, type: typeof s.id })));
+            console.log('================================');
+
             select.innerHTML = '<option value="">Select Subject</option>';
-            getSubjects().forEach(subject => {
+            subjects.forEach(subject => {
                 const option = document.createElement('option');
                 option.value = subject.id;
                 option.textContent = subject.name;
+                console.log('Adding option:', { value: option.value, text: option.textContent, type: typeof option.value });
                 select.appendChild(option);
             });
         }
@@ -814,7 +825,21 @@
         // Function to update lecture info and check for existing attendance
         function updateLectureInfo(subjectId, date, lectureNumber) {
             const subjects = getSubjects();
-            const subject = subjects.find(s => s.id === subjectId);
+            const subject = subjects.find(s => String(s.id) === String(subjectId)); // Force string comparison
+
+            // Debug logging for "Unknown" subject issue
+            console.log('=== DEBUG updateLectureInfo ===');
+            console.log('Looking for subjectId:', subjectId, 'Type:', typeof subjectId);
+            console.log('Available subjects:', subjects);
+            console.log('Available subject IDs:', subjects.map(s => ({ id: s.id, name: s.name, type: typeof s.id })));
+            console.log('Found subject:', subject);
+            console.log('Subject comparison results:');
+            subjects.forEach(s => {
+                console.log(`  ${s.id} === ${subjectId}?`, s.id === subjectId, `(${typeof s.id} vs ${typeof subjectId})`);
+                console.log(`  "${s.id}" === "${subjectId}"?`, String(s.id) === String(subjectId));
+            });
+            console.log('================================');
+
             const subjectName = subject ? subject.name : 'Unknown';
 
             // Calculate total lecture count for this subject (semester total)
@@ -1260,130 +1285,373 @@
 
             if (type === 'student') {
                 generateStudentPDF(doc, students, subjects, attendance, subjectFilter);
+            } else if (type === 'specific-student') {
+                generateSpecificStudentPDF(doc, students, subjects, attendance);
             } else {
                 generateSubjectPDF(doc, students, subjects, attendance, subjectFilter);
             }
 
             // Save the PDF
-            const fileName = type === 'student' ? 'Student_Attendance_Report.pdf' : 'Subject_Attendance_Report.pdf';
+            const timestamp = new Date().toISOString().slice(0, 10);
+            let fileName = '';
+            if (type === 'student') {
+                fileName = `Student_Attendance_Report_${timestamp}.pdf`;
+            } else if (type === 'specific-student') {
+                const rollNumber = document.getElementById('student-roll-search').value.trim();
+                fileName = `${rollNumber}_Attendance_Report_${timestamp}.pdf`;
+            } else {
+                fileName = `Subject_Attendance_Report_${timestamp}.pdf`;
+            }
+
             doc.save(fileName);
         }
 
-        function generateStudentPDF(doc, students, subjects, attendance, subjectFilter) {
-            // Header
-            doc.setFontSize(18);
-            doc.setFont(undefined, 'bold');
-            doc.text('Student Attendance Report', 105, 20, { align: 'center' });
+        function addPDFHeader(doc, title, subtitle = '', pageNum = 1, totalPages = 1) {
+            // Header background
+            doc.setFillColor(33, 150, 243); // Blue background
+            doc.rect(0, 0, 210, 25, 'F');
 
-            // Date and filters
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            const dateGenerated = new Date().toLocaleDateString();
-            doc.text(`Generated on: ${dateGenerated}`, 20, 35);
+            // Title
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text(title, 105, 12, { align: 'center' });
 
-            if (subjectFilter) {
-                const subject = subjects.find(s => s.id === subjectFilter);
-                doc.text(`Subject: ${subject ? subject.name : 'Unknown'}`, 20, 42);
+            if (subtitle) {
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.text(subtitle, 105, 19, { align: 'center' });
             }
 
-            let yPos = 55;
+            // Reset text color
+            doc.setTextColor(0, 0, 0);
+
+            // Page number
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Page ${pageNum} of ${totalPages}`, 190, 8, { align: 'center' });
+
+            // Date generated
+            const dateGenerated = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            doc.text(`Generated: ${dateGenerated}`, 15, 8);
+
+            return 35; // Return starting Y position for content
+        }
+
+        function addPDFFooter(doc, pageNum, totalPages) {
+            // Footer line
+            doc.setDrawColor(200, 200, 200);
+            doc.line(15, 285, 195, 285);
+
+            // Footer text
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Attendance Management System - PUCIT', 105, 292, { align: 'center' });
+        }
+
+        function checkPageBreak(doc, currentY, neededSpace, pageNum, totalPages, title, subtitle = '') {
+            if (currentY + neededSpace > 275) { // Leave space for footer
+                addPDFFooter(doc, pageNum, totalPages);
+                doc.addPage();
+                pageNum++;
+                currentY = addPDFHeader(doc, title, subtitle, pageNum, totalPages);
+            }
+            return { y: currentY, pageNum: pageNum };
+        }
+
+        function generateStudentPDF(doc, students, subjects, attendance, subjectFilter) {
+            let pageNum = 1;
+            let totalPages = Math.ceil(students.length / 8) + 1; // Estimate
+
+            const subjectName = subjectFilter ? (subjects.find(s => s.id === subjectFilter)?.name || 'Unknown Subject') : 'All Subjects';
+            const subtitle = `Student-wise Report - ${subjectName}`;
+
+            let yPos = addPDFHeader(doc, 'ATTENDANCE REPORT', subtitle, pageNum, totalPages);
+
+            // Summary section
+            doc.setFillColor(248, 249, 250);
+            doc.rect(15, yPos, 180, 25, 'F');
+            doc.setDrawColor(33, 150, 243);
+            doc.rect(15, yPos, 180, 25);
+
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('📊 SUMMARY', 20, yPos + 8);
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Total Students: ${students.length}`, 20, yPos + 16);
+            doc.text(`Total Attendance Sessions: ${attendance.length}`, 20, yPos + 22);
+
+            if (subjectFilter) {
+                doc.text(`Subject Filter: ${subjectName}`, 110, yPos + 16);
+            }
+
+            yPos += 35;
 
             // Sort students by roll number
             const sortedStudents = [...students].sort((a, b) => a.roll.localeCompare(b.roll));
 
             sortedStudents.forEach((student, index) => {
-                // Check if we need a new page
-                if (yPos > 250) {
-                    doc.addPage();
-                    yPos = 20;
-                }
+                // Check if we need a new page (each student needs ~45 units)
+                const result = checkPageBreak(doc, yPos, 50, pageNum, totalPages, 'ATTENDANCE REPORT', subtitle);
+                yPos = result.y;
+                pageNum = result.pageNum;
 
                 let present = 0, absent = 0;
-                const absentDetails = [];
+                const subjectStats = {};
 
-                // Group attendance by date
-                const attendanceByDate = {};
+                // Collect attendance data
                 attendance.forEach(session => {
                     const record = session.records.find(r => r.studentId === student.id);
                     if (record) {
-                        if (!attendanceByDate[session.date]) {
-                            attendanceByDate[session.date] = [];
-                        }
                         const subject = subjects.find(s => s.id === session.subjectId);
-                        const lectureInfo = session.lectureNumber ? `Lecture ${session.lectureNumber}` : '';
-                        attendanceByDate[session.date].push({
-                            subject: subject ? subject.name : 'Unknown',
-                            lecture: lectureInfo,
-                            status: record.status
-                        });
+                        const subjectName = subject ? subject.name : 'Unknown';
+
+                        if (!subjectStats[subjectName]) {
+                            subjectStats[subjectName] = { present: 0, absent: 0, sessions: [] };
+                        }
 
                         if (record.status === 'present') {
                             present++;
+                            subjectStats[subjectName].present++;
                         } else {
                             absent++;
+                            subjectStats[subjectName].absent++;
                         }
+
+                        subjectStats[subjectName].sessions.push({
+                            date: session.date,
+                            lecture: session.lectureNumber,
+                            status: record.status
+                        });
                     }
                 });
 
                 const total = present + absent;
                 const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
 
-                // Student header
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.text(`${student.roll} - ${student.name}`, 20, yPos);
+                // Student card background
+                doc.setFillColor(255, 255, 255);
+                doc.rect(15, yPos, 180, 45, 'F');
+                doc.setDrawColor(220, 220, 220);
+                doc.rect(15, yPos, 180, 45);
 
-                // Statistics
-                doc.setFontSize(10);
-                doc.setFont(undefined, 'normal');
-                doc.text(`Present: ${present} | Absent: ${absent} | Total: ${total} | Attendance: ${percentage}%`, 20, yPos + 8);
+                // Student header with colored bar
+                const barColor = percentage >= 80 ? [76, 175, 80] : percentage >= 60 ? [255, 193, 7] : [244, 67, 54];
+                doc.setFillColor(...barColor);
+                doc.rect(15, yPos, 180, 12, 'F');
+
+                // Student name and roll
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`👤 ${student.roll} - ${student.name}`, 20, yPos + 8);
+
+                // Attendance percentage
+                doc.setFontSize(11);
+                doc.text(`${percentage}%`, 185, yPos + 8, { align: 'right' });
+
+                // Reset text color
+                doc.setTextColor(0, 0, 0);
+
+                // Statistics row
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'normal');
                 yPos += 18;
 
-                // Absent dates details
-                if (absent > 0) {
-                    doc.setFont(undefined, 'bold');
-                    doc.text('Absent Details:', 25, yPos);
-                    yPos += 8;
-                    doc.setFont(undefined, 'normal');
+                doc.text(`✅ Present: ${present}`, 20, yPos);
+                doc.text(`❌ Absent: ${absent}`, 70, yPos);
+                doc.text(`📊 Total: ${total}`, 120, yPos);
 
-                    Object.keys(attendanceByDate).sort().forEach(date => {
-                        const dayAttendance = attendanceByDate[date];
-                        const absentSessions = dayAttendance.filter(session => session.status === 'absent');
+                // Subject breakdown
+                yPos += 8;
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Subject Breakdown:', 20, yPos);
 
-                        if (absentSessions.length > 0) {
-                            doc.text(`• ${date}:`, 30, yPos);
-                            yPos += 6;
+                yPos += 5;
+                doc.setFont('helvetica', 'normal');
+                let subjectCount = 0;
+                Object.keys(subjectStats).forEach(subjectName => {
+                    if (subjectCount < 3) { // Limit to 3 subjects per row
+                        const stats = subjectStats[subjectName];
+                        const subjectTotal = stats.present + stats.absent;
+                        const subjectPercentage = subjectTotal > 0 ? ((stats.present / subjectTotal) * 100).toFixed(0) : 0;
+                        doc.text(`${subjectName}: ${subjectPercentage}%`, 20 + (subjectCount * 60), yPos);
+                        subjectCount++;
+                    }
+                });
 
-                            absentSessions.forEach(session => {
-                                doc.text(`  - ${session.subject} ${session.lecture}`, 35, yPos);
-                                yPos += 5;
-                            });
-                            yPos += 3;
-                        }
+                yPos += 20; // Space between students
+            });
+
+            addPDFFooter(doc, pageNum, totalPages);
+        }
+
+        function generateSpecificStudentPDF(doc, students, subjects, attendance) {
+            const rollNumber = document.getElementById('student-roll-search').value.trim();
+            const student = students.find(s => s.roll.toLowerCase() === rollNumber.toLowerCase());
+
+            if (!student) {
+                alert('Student not found for PDF generation');
+                return;
+            }
+
+            let pageNum = 1;
+            let totalPages = 1;
+
+            const subtitle = `Individual Report - ${student.roll}`;
+            let yPos = addPDFHeader(doc, 'STUDENT ATTENDANCE REPORT', subtitle, pageNum, totalPages);
+
+            // Student info card
+            doc.setFillColor(33, 150, 243);
+            doc.rect(15, yPos, 180, 20, 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`👤 ${student.roll} - ${student.name}`, 20, yPos + 12);
+
+            doc.setTextColor(0, 0, 0);
+            yPos += 30;
+
+            // Collect data by subject
+            const subjectStats = {};
+            attendance.forEach(session => {
+                const record = session.records.find(r => r.studentId === student.id);
+                if (record) {
+                    const subject = subjects.find(s => s.id === session.subjectId);
+                    const subjectName = subject ? subject.name : 'Unknown';
+
+                    if (!subjectStats[subjectName]) {
+                        subjectStats[subjectName] = { present: 0, absent: 0, sessions: [] };
+                    }
+
+                    if (record.status === 'present') {
+                        subjectStats[subjectName].present++;
+                    } else {
+                        subjectStats[subjectName].absent++;
+                    }
+
+                    subjectStats[subjectName].sessions.push({
+                        date: session.date,
+                        lecture: session.lectureNumber,
+                        status: record.status
                     });
-                } else {
-                    doc.setFont(undefined, 'italic');
-                    doc.text('No absences recorded', 25, yPos);
-                    yPos += 8;
+                }
+            });
+
+            // Overall statistics
+            let totalPresent = 0, totalAbsent = 0;
+            Object.values(subjectStats).forEach(stats => {
+                totalPresent += stats.present;
+                totalAbsent += stats.absent;
+            });
+
+            const overallTotal = totalPresent + totalAbsent;
+            const overallPercentage = overallTotal > 0 ? ((totalPresent / overallTotal) * 100).toFixed(1) : 0;
+
+            // Overall stats card
+            doc.setFillColor(248, 249, 250);
+            doc.rect(15, yPos, 180, 25, 'F');
+            doc.setDrawColor(200, 200, 200);
+            doc.rect(15, yPos, 180, 25);
+
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('📊 OVERALL STATISTICS', 20, yPos + 8);
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Present: ${totalPresent} | Absent: ${totalAbsent} | Total: ${overallTotal} | Attendance Rate: ${overallPercentage}%`, 20, yPos + 18);
+
+            yPos += 35;
+
+            // Subject-wise details
+            Object.keys(subjectStats).forEach(subjectName => {
+                const stats = subjectStats[subjectName];
+                const subjectTotal = stats.present + stats.absent;
+                const subjectPercentage = subjectTotal > 0 ? ((stats.present / subjectTotal) * 100).toFixed(1) : 0;
+
+                // Check page break
+                const result = checkPageBreak(doc, yPos, 40 + (stats.sessions.length * 5), pageNum, totalPages, 'STUDENT ATTENDANCE REPORT', subtitle);
+                yPos = result.y;
+                pageNum = result.pageNum;
+
+                // Subject header
+                const headerColor = subjectPercentage >= 80 ? [76, 175, 80] : subjectPercentage >= 60 ? [255, 193, 7] : [244, 67, 54];
+                doc.setFillColor(...headerColor);
+                doc.rect(15, yPos, 180, 15, 'F');
+
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`📚 ${subjectName}`, 20, yPos + 10);
+                doc.text(`${subjectPercentage}%`, 185, yPos + 10, { align: 'right' });
+
+                doc.setTextColor(0, 0, 0);
+                yPos += 20;
+
+                // Subject stats
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`Present: ${stats.present} | Absent: ${stats.absent} | Total: ${subjectTotal}`, 20, yPos);
+                yPos += 10;
+
+                // Session details (latest first)
+                stats.sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                stats.sessions.slice(0, 10).forEach(session => { // Show last 10 sessions
+                    const statusIcon = session.status === 'present' ? '✅' : '❌';
+                    const lectureText = session.lecture ? ` (${session.lecture}${getOrdinalSuffix(session.lecture)} lecture)` : '';
+                    doc.text(`${statusIcon} ${session.date}${lectureText}`, 25, yPos);
+                    yPos += 5;
+                });
+
+                if (stats.sessions.length > 10) {
+                    doc.setFont('helvetica', 'italic');
+                    doc.text(`... and ${stats.sessions.length - 10} more sessions`, 25, yPos);
+                    doc.setFont('helvetica', 'normal');
+                    yPos += 5;
                 }
 
-                yPos += 10; // Space between students
+                yPos += 10; // Space between subjects
             });
+
+            addPDFFooter(doc, pageNum, totalPages);
         }
 
         function generateSubjectPDF(doc, students, subjects, attendance, subjectFilter) {
-            // Header
-            doc.setFontSize(18);
-            doc.setFont(undefined, 'bold');
-            doc.text('Subject-wise Attendance Report', 105, 20, { align: 'center' });
+            let pageNum = 1;
+            let totalPages = Math.ceil(attendance.length / 3) + 1; // Estimate
 
-            // Date and filters
+            const subjectName = subjectFilter ? (subjects.find(s => s.id === subjectFilter)?.name || 'Unknown Subject') : 'All Subjects';
+            const subtitle = `Subject-wise Report - ${subjectName}`;
+
+            let yPos = addPDFHeader(doc, 'SUBJECT ATTENDANCE REPORT', subtitle, pageNum, totalPages);
+
+            // Summary section
+            doc.setFillColor(248, 249, 250);
+            doc.rect(15, yPos, 180, 25, 'F');
+            doc.setDrawColor(33, 150, 243);
+            doc.rect(15, yPos, 180, 25);
+
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('📊 SUMMARY', 20, yPos + 8);
+
             doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            const dateGenerated = new Date().toLocaleDateString();
-            doc.text(`Generated on: ${dateGenerated}`, 20, 35);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Total Sessions: ${attendance.length}`, 20, yPos + 16);
+            doc.text(`Total Students: ${students.length}`, 20, yPos + 22);
 
-            let yPos = 50;
+            yPos += 35;
 
             // Group attendance by date and subject
             const attendanceByDateSubject = {};
@@ -1392,27 +1660,20 @@
                 attendanceByDateSubject[key] = session;
             });
 
-            // Sort by date, then subject
-            const sortedKeys = Object.keys(attendanceByDateSubject).sort();
+            // Sort by date (newest first), then subject
+            const sortedKeys = Object.keys(attendanceByDateSubject).sort((a, b) => {
+                const dateA = a.split('_')[0];
+                const dateB = b.split('_')[0];
+                return new Date(dateB) - new Date(dateA);
+            });
 
-            sortedKeys.forEach(key => {
+            sortedKeys.forEach((key, index) => {
                 const session = attendanceByDateSubject[key];
                 const subject = subjects.find(s => s.id === session.subjectId);
-                const subjectName = subject ? subject.name : 'Unknown';
-                const lectureInfo = session.lectureNumber ? `${session.lectureNumber}${getOrdinalSuffix(session.lectureNumber)} Lecture` : '';
+                const subjectName = subject ? subject.name : `Unknown (${session.subjectId})`;
+                const lectureInfo = session.lectureNumber ? `${session.lectureNumber}${getOrdinalSuffix(session.lectureNumber)} Lecture` : 'Lecture';
 
-                // Check if we need a new page
-                if (yPos > 220) {
-                    doc.addPage();
-                    yPos = 20;
-                }
-
-                // Date header
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text(`${session.date} - ${subjectName} (${lectureInfo})`, 20, yPos);
-                yPos += 10;
-
+                // Calculate present/absent
                 const presentStudents = [];
                 const absentStudents = [];
 
@@ -1431,46 +1692,125 @@
                 presentStudents.sort((a, b) => a.roll.localeCompare(b.roll));
                 absentStudents.sort((a, b) => a.roll.localeCompare(b.roll));
 
+                const totalStudents = presentStudents.length + absentStudents.length;
+                const attendanceRate = totalStudents > 0 ? ((presentStudents.length / totalStudents) * 100).toFixed(1) : 0;
+
+                // Check if we need a new page
+                const neededSpace = 80 + (Math.max(presentStudents.length, absentStudents.length) * 4);
+                const result = checkPageBreak(doc, yPos, neededSpace, pageNum, totalPages, 'SUBJECT ATTENDANCE REPORT', subtitle);
+                yPos = result.y;
+                pageNum = result.pageNum;
+
+                // Session card
+                doc.setFillColor(255, 255, 255);
+                doc.rect(15, yPos, 180, neededSpace - 10, 'F');
+                doc.setDrawColor(220, 220, 220);
+                doc.rect(15, yPos, 180, neededSpace - 10);
+
+                // Header with colored bar
+                const headerColor = attendanceRate >= 80 ? [76, 175, 80] : attendanceRate >= 60 ? [255, 193, 7] : [244, 67, 54];
+                doc.setFillColor(...headerColor);
+                doc.rect(15, yPos, 180, 15, 'F');
+
+                // Session title
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`📅 ${session.date} - ${subjectName}`, 20, yPos + 10);
+                doc.text(`${attendanceRate}%`, 185, yPos + 10, { align: 'right' });
+
+                doc.setTextColor(0, 0, 0);
+                yPos += 20;
+
                 // Statistics
                 doc.setFontSize(10);
-                doc.setFont(undefined, 'normal');
-                doc.text(`Present: ${presentStudents.length} | Absent: ${absentStudents.length} | Total: ${presentStudents.length + absentStudents.length}`, 20, yPos);
-                yPos += 10;
+                doc.setFont('helvetica', 'normal');
+                doc.text(`${lectureInfo} | Present: ${presentStudents.length} | Absent: ${absentStudents.length} | Total: ${totalStudents}`, 20, yPos);
+                yPos += 15;
 
-                // Present students
+                // Two columns for present and absent
+                const leftColumnX = 20;
+                const rightColumnX = 110;
+                let leftY = yPos;
+                let rightY = yPos;
+
+                // Present students (left column)
                 if (presentStudents.length > 0) {
-                    doc.setFont(undefined, 'bold');
-                    doc.text('Present Students:', 20, yPos);
-                    yPos += 6;
-                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(76, 175, 80);
+                    doc.text('✅ Present Students:', leftColumnX, leftY);
+                    leftY += 8;
 
-                    presentStudents.forEach(student => {
-                        doc.text(`• ${student.roll} - ${student.name}`, 25, yPos);
-                        yPos += 5;
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(0, 0, 0);
+                    presentStudents.slice(0, 15).forEach(student => { // Limit to prevent overflow
+                        doc.setFontSize(8);
+                        doc.text(`• ${student.roll} - ${student.name.substring(0, 15)}`, leftColumnX, leftY);
+                        leftY += 4;
                     });
-                    yPos += 5;
-                }
 
-                // Absent students
-                if (absentStudents.length > 0) {
-                    doc.setFont(undefined, 'bold');
-                    doc.text('Absent Students:', 20, yPos);
-                    yPos += 6;
-                    doc.setFont(undefined, 'normal');
-
-                    absentStudents.forEach(student => {
-                        doc.text(`• ${student.roll} - ${student.name}`, 25, yPos);
-                        yPos += 5;
-                    });
-                    yPos += 5;
+                    if (presentStudents.length > 15) {
+                        doc.setFont('helvetica', 'italic');
+                        doc.text(`... and ${presentStudents.length - 15} more`, leftColumnX, leftY);
+                        leftY += 4;
+                    }
                 } else {
-                    doc.setFont(undefined, 'italic');
-                    doc.text('No absent students', 25, yPos);
-                    yPos += 8;
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'italic');
+                    doc.setTextColor(100, 100, 100);
+                    doc.text('No students present', leftColumnX, leftY);
+                    leftY += 8;
                 }
 
-                yPos += 10; // Space between sessions
+                // Absent students (right column)
+                if (absentStudents.length > 0) {
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(244, 67, 54);
+                    doc.text('❌ Absent Students:', rightColumnX, rightY);
+                    rightY += 8;
+
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(0, 0, 0);
+                    absentStudents.slice(0, 15).forEach(student => { // Limit to prevent overflow
+                        doc.setFontSize(8);
+                        doc.text(`• ${student.roll} - ${student.name.substring(0, 15)}`, rightColumnX, rightY);
+                        rightY += 4;
+                    });
+
+                    if (absentStudents.length > 15) {
+                        doc.setFont('helvetica', 'italic');
+                        doc.text(`... and ${absentStudents.length - 15} more`, rightColumnX, rightY);
+                        rightY += 4;
+                    }
+                } else {
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'italic');
+                    doc.setTextColor(100, 100, 100);
+                    doc.text('No absent students! 🎉', rightColumnX, rightY);
+                    rightY += 8;
+                }
+
+                yPos = Math.max(leftY, rightY) + 15; // Space between sessions
             });
+
+            addPDFFooter(doc, pageNum, totalPages);
+        }
+
+        function getOrdinalSuffix(num) {
+            const j = num % 10;
+            const k = num % 100;
+            if (j == 1 && k != 11) {
+                return "st";
+            }
+            if (j == 2 && k != 12) {
+                return "nd";
+            }
+            if (j == 3 && k != 13) {
+                return "rd";
+            }
+            return "th";
         }
 
         function generateSpecificStudentSummary() {
@@ -1904,6 +2244,15 @@
                 if (selectedLecture) {
                     const subjectId = document.getElementById('attendance-subject').value;
                     const date = document.getElementById('attendance-date').value;
+
+                    // Debug logging for subject selection
+                    console.log('=== DEBUG Subject Selection ===');
+                    console.log('Selected subjectId:', subjectId, 'Type:', typeof subjectId);
+                    console.log('Selected date:', date);
+                    console.log('Selected lecture:', selectedLecture);
+                    console.log('Will call updateLectureInfo with these values');
+                    console.log('==============================');
+
                     if (subjectId && date) {
                         updateLectureInfo(subjectId, date, selectedLecture);
                     }
@@ -1914,6 +2263,14 @@
                 if (selectedLecture) {
                     const subjectId = document.getElementById('attendance-subject').value;
                     const date = document.getElementById('attendance-date').value;
+
+                    // Debug logging for date selection
+                    console.log('=== DEBUG Date Selection ===');
+                    console.log('Selected subjectId:', subjectId, 'Type:', typeof subjectId);
+                    console.log('Selected date:', date);
+                    console.log('Selected lecture:', selectedLecture);
+                    console.log('============================');
+
                     if (subjectId && date) {
                         updateLectureInfo(subjectId, date, selectedLecture);
                     }
@@ -2028,6 +2385,33 @@
                     }
                 };
             }
+
+            // Suppress blocked request errors in console
+            window.addEventListener('error', function (e) {
+                // Suppress external service errors that are commonly blocked by ad blockers
+                if (e.message && (
+                    e.message.includes('ERR_BLOCKED_BY_CLIENT') ||
+                    e.message.includes('sentry') ||
+                    e.message.includes('temp-mail') ||
+                    e.message.includes('jsonbin') ||
+                    e.message.includes('Failed to fetch')
+                )) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            // Suppress unhandled promise rejections from external services
+            window.addEventListener('unhandledrejection', function (e) {
+                if (e.reason && typeof e.reason === 'string' && (
+                    e.reason.includes('ERR_BLOCKED_BY_CLIENT') ||
+                    e.reason.includes('Failed to fetch') ||
+                    e.reason.includes('Cloud sync unavailable')
+                )) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
 
             // Initialize
             loadAttendanceTab();
