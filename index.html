@@ -1005,14 +1005,13 @@
             console.log('Name element:', nameElement); // Debug log
 
             if (!rollElement || !nameElement) {
-                alert('Error: Could not find input fields');
+                console.error('Could not find input elements');
+                alert('Error: Could not find input fields. Make sure you are on the Manage tab.');
                 return;
             }
 
             const roll = rollElement.value.trim();
-            const name = nameElement.value.trim();
-
-            console.log('Roll value:', roll); // Debug log
+            const name = nameElement.value.trim(); console.log('Roll value:', roll); // Debug log
             console.log('Name value:', name); // Debug log
 
             if (!roll || !name) {
