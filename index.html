@@ -29,6 +29,31 @@
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* Dark Mode Theme */
+        body.dark-mode {
+            --primary-color: #42A5F5;
+            --primary-dark: #1E88E5;
+            --primary-light: #1a237e;
+            --secondary-color: #FFA726;
+            --secondary-dark: #FB8C00;
+            --accent-color: #66BB6A;
+            --accent-dark: #43A047;
+            --error-color: #EF5350;
+            --warning-color: #FFA726;
+            --surface-color: #1E1E1E;
+            --surface-dark: #2D2D2D;
+            --text-primary: #E0E0E0;
+            --text-secondary: #B0B0B0;
+            --divider-color: #3D3D3D;
+            --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.3);
+            --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.4);
+            --shadow-heavy: 0 8px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -100,6 +125,20 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
             }
         }
 
@@ -571,6 +610,84 @@
             display: block;
         }
 
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            border-radius: 8px;
+            background: var(--surface-color);
+            border: 2px solid var(--divider-color);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .calendar-day.has-class {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-dark);
+        }
+
+        .calendar-day.low-attendance {
+            background: var(--error-color);
+            color: white;
+            border-color: #d32f2f;
+        }
+
+        .calendar-day.today {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-dark);
+            font-weight: bold;
+        }
+
+        .calendar-day.empty {
+            background: transparent;
+            border: none;
+            cursor: default;
+        }
+
+        .calendar-day.empty:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .calendar-day-number {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .calendar-day-info {
+            font-size: 10px;
+            text-align: center;
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 15px;
@@ -615,6 +732,12 @@
         <div class="header">
             <h1>📚 Attendance Tracker</h1>
             <p>Manage student attendance efficiently</p>
+            <div style="position: absolute; top: 20px; right: 20px;">
+                <button class="btn" onclick="toggleDarkMode()"
+                    style="padding: 8px 12px; background: rgba(255,255,255,0.2);" title="Toggle Dark Mode">
+                    <span id="theme-icon">🌙</span>
+                </button>
+            </div>
         </div>
 
         <!-- Take Attendance Tab -->
@@ -644,6 +767,16 @@
                 </div>
             </div>
 
+            <div id="bulk-actions" class="hidden"
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                <button class="btn btn-success" onclick="markAllPresent()">
+                    ✓ Mark All Present
+                </button>
+                <button class="btn btn-danger" onclick="markAllAbsent()">
+                    ✗ Mark All Absent
+                </button>
+            </div>
+
             <div id="student-attendance" class="student-list hidden">
                 <!-- Students will be loaded here -->
             </div>
@@ -664,8 +797,131 @@
                 </select>
             </div>
 
+            <div class="form-group">
+                <label>📅 Date Range Filter (Optional):</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label for="track-date-from" style="font-size: 12px; font-weight: normal;">From:</label>
+                        <input type="date" id="track-date-from">
+                    </div>
+                    <div>
+                        <label for="track-date-to" style="font-size: 12px; font-weight: normal;">To:</label>
+                        <input type="date" id="track-date-to">
+                    </div>
+                </div>
+                <button class="btn btn-secondary" onclick="showAttendanceSummary()"
+                    style="margin-top: 10px; width: 100%; padding: 8px; font-size: 14px;">
+                    🔍 Apply Filter
+                </button>
+                <button class="btn" onclick="clearDateFilter('track')"
+                    style="margin-top: 5px; width: 100%; padding: 6px; font-size: 12px; background: var(--surface-dark); color: var(--text-primary);">
+                    Clear Filter
+                </button>
+            </div>
+
             <div id="attendance-summary" class="attendance-summary">
                 <!-- Attendance summary will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Calendar Tab -->
+        <div class="tab-content" id="calendar">
+            <h3 style="margin-bottom: 20px; color: var(--text-primary); text-align: center;">📅 Attendance Calendar</h3>
+
+            <div class="form-group">
+                <label for="calendar-subject">Select Subject:</label>
+                <select id="calendar-subject" onchange="showCalendar()">
+                    <option value="">All Subjects</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Select Month:</label>
+                <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: end;">
+                    <input type="month" id="calendar-month" onchange="showCalendar()">
+                    <button class="btn btn-secondary" onclick="goToPrevMonth()" style="padding: 8px 12px;">◀</button>
+                    <button class="btn btn-secondary" onclick="goToNextMonth()" style="padding: 8px 12px;">▶</button>
+                </div>
+            </div>
+
+            <div id="calendar-view">
+                <!-- Calendar will be rendered here -->
+            </div>
+
+            <div id="calendar-legend"
+                style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px; padding: 15px; background: var(--surface-dark); border-radius: var(--border-radius);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 20px; height: 20px; background: var(--accent-color); border-radius: 4px;"></div>
+                    <span style="font-size: 14px;">Has Class</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 20px; height: 20px; background: var(--error-color); border-radius: 4px;"></div>
+                    <span style="font-size: 14px;">Low Attendance</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div
+                        style="width: 20px; height: 20px; background: var(--surface-color); border: 2px solid var(--divider-color); border-radius: 4px;">
+                    </div>
+                    <span style="font-size: 14px;">No Class</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 20px; height: 20px; background: var(--primary-color); border-radius: 4px;"></div>
+                    <span style="font-size: 14px;">Today</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div class="tab-content" id="analytics">
+            <h3 style="margin-bottom: 20px; color: var(--text-primary); text-align: center;">📈 Analytics Dashboard</h3>
+
+            <div class="form-group">
+                <label for="analytics-subject">Filter by Subject (Optional):</label>
+                <select id="analytics-subject" onchange="showAnalytics()">
+                    <option value="">All Subjects</option>
+                </select>
+            </div>
+
+            <div id="analytics-content">
+                <!-- Analytics will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Defaulters Tab -->
+        <div class="tab-content" id="defaulters">
+            <h3 style="margin-bottom: 20px; color: var(--error-color); text-align: center;">⚠️ Low Attendance Alert</h3>
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">
+                Students with attendance below threshold in any subject
+            </p>
+
+            <div class="form-group">
+                <label for="threshold-select">Attendance Threshold:</label>
+                <select id="threshold-select" onchange="showDefaulters()">
+                    <option value="85">Below 85%</option>
+                    <option value="80">Below 80%</option>
+                    <option value="75" selected>Below 75%</option>
+                    <option value="70">Below 70%</option>
+                    <option value="60">Below 60%</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="defaulters-search">🔍 Search Students:</label>
+                <input type="text" id="defaulters-search" placeholder="Search by name or roll number..."
+                    oninput="showDefaulters()">
+            </div>
+
+            <div class="form-group">
+                <label for="defaulters-sort">Sort By:</label>
+                <select id="defaulters-sort" onchange="showDefaulters()">
+                    <option value="worst">Worst Attendance First</option>
+                    <option value="name">Name (A-Z)</option>
+                    <option value="roll">Roll Number</option>
+                </select>
+            </div>
+
+            <div id="defaulters-list">
+                <!-- Defaulters will be loaded here -->
             </div>
         </div>
 
@@ -699,6 +955,10 @@
                     <button class="btn btn-secondary btn-block" onclick="exportStudentWisePDF()">
                         📄 Export PDF
                     </button>
+                    <button class="btn btn-block" onclick="shareViaWhatsApp('student-wise')"
+                        style="background: #25D366;">
+                        📱 Share via WhatsApp
+                    </button>
                 </div>
             </div>
 
@@ -720,6 +980,10 @@
                     </button>
                     <button class="btn btn-secondary btn-block" onclick="exportSubjectWisePDF()">
                         📄 Export PDF
+                    </button>
+                    <button class="btn btn-block" onclick="shareViaWhatsApp('subject-wise')"
+                        style="background: #25D366;">
+                        📱 Share via WhatsApp
                     </button>
                 </div>
             </div>
@@ -809,6 +1073,9 @@
             <input type="file" id="import-file" accept=".json" style="display: none;"
                 onchange="handleFileImport(event)">
 
+            <h3 style="margin: 30px 0 20px 0; color: var(--text-primary);">🔄 Auto-Backups</h3>
+            <div id="auto-backup-list" style="margin-bottom: 20px;"></div>
+
             <div class="danger-zone">
                 <h3>⚠️ Danger Zone</h3>
                 <button class="btn btn-danger" onclick="clearAllAttendance()">Clear All Attendance</button>
@@ -832,9 +1099,21 @@
             <span class="tab-icon">📊</span>
             <span class="tab-label">Track</span>
         </div>
+        <div class="tab" onclick="switchTab('calendar')">
+            <span class="tab-icon">📅</span>
+            <span class="tab-label">Calendar</span>
+        </div>
+        <div class="tab" onclick="switchTab('analytics')">
+            <span class="tab-icon">📈</span>
+            <span class="tab-label">Analytics</span>
+        </div>
+        <div class="tab" onclick="switchTab('defaulters')">
+            <span class="tab-icon">⚠️</span>
+            <span class="tab-label">Alerts</span>
+        </div>
         <div class="tab" onclick="switchTab('summary')">
             <span class="tab-icon">📋</span>
-            <span class="tab-label">Summary</span>
+            <span class="tab-label">Reports</span>
         </div>
         <div class="tab" onclick="switchTab('manage')">
             <span class="tab-icon">⚙️</span>
@@ -847,6 +1126,208 @@
         // Global variables
         let selectedLecture = null;
         let currentAttendance = {};
+        let lastSavedAttendance = null; // For undo feature
+
+        // Auto-backup configuration
+        const AUTO_BACKUP_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+        const AUTO_BACKUP_KEEP = 7; // Keep last 7 snapshots
+        let autoBackupTimer = null;
+
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // Load dark mode preference
+        function loadDarkModePreference() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-icon').textContent = '☀️';
+            }
+        }
+
+        // Bulk mark all students as present
+        function markAllPresent() {
+            const students = getStudents();
+            students.forEach(student => {
+                currentAttendance[student.roll] = 'present';
+            });
+            loadStudentsForAttendance();
+        }
+
+        // Bulk mark all students as absent
+        function markAllAbsent() {
+            const students = getStudents();
+            students.forEach(student => {
+                currentAttendance[student.roll] = 'absent';
+            });
+            loadStudentsForAttendance();
+        }
+
+        // Undo last saved attendance
+        function undoLastAttendance() {
+            if (!lastSavedAttendance) {
+                alert('No recent attendance to undo');
+                return;
+            }
+
+            if (confirm('Are you sure you want to undo the last saved attendance?')) {
+                const attendance = getAttendance();
+                delete attendance[lastSavedAttendance.key];
+                setAttendance(attendance);
+
+                const messageDiv = document.getElementById('attendance-message');
+                showMessage(messageDiv, `✅ Attendance undone for ${lastSavedAttendance.subject} - ${lastSavedAttendance.date}`, 'success');
+
+                lastSavedAttendance = null;
+            }
+        }
+
+        // Auto-backup functions
+        function makeSnapshot() {
+            return {
+                ts: new Date().toISOString(),
+                data: {
+                    students: getStudents(),
+                    subjects: getSubjects(),
+                    attendance: getAttendance()
+                }
+            };
+        }
+
+        function saveAutoBackup() {
+            try {
+                const raw = localStorage.getItem('attendance_backups');
+                const arr = raw ? JSON.parse(raw) : [];
+                arr.push(makeSnapshot());
+
+                // Keep only last N snapshots
+                while (arr.length > AUTO_BACKUP_KEEP) {
+                    arr.shift();
+                }
+
+                localStorage.setItem('attendance_backups', JSON.stringify(arr));
+                console.log('✅ Auto-backup saved:', new Date().toLocaleString());
+            } catch (e) {
+                console.error('❌ Auto-backup failed:', e);
+            }
+        }
+
+        function startAutoBackup() {
+            if (autoBackupTimer) clearInterval(autoBackupTimer);
+
+            // Save initial snapshot
+            saveAutoBackup();
+
+            // Set up periodic backups
+            autoBackupTimer = setInterval(saveAutoBackup, AUTO_BACKUP_INTERVAL_MS);
+
+            console.log(`🔄 Auto-backup enabled: Every ${AUTO_BACKUP_INTERVAL_MS / 60000} minutes, keeping last ${AUTO_BACKUP_KEEP} snapshots`);
+        }
+
+        function listAutoBackups() {
+            try {
+                return JSON.parse(localStorage.getItem('attendance_backups') || '[]');
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function restoreAutoBackup(ts) {
+            const backups = listAutoBackups();
+            const snap = backups.find(b => b.ts === ts);
+
+            if (!snap) {
+                alert('Backup not found');
+                return false;
+            }
+
+            if (!confirm(`Restore backup from ${new Date(ts).toLocaleString()}?\n\nThis will replace all current data.`)) {
+                return false;
+            }
+
+            try {
+                if (snap.data.students) setStudents(snap.data.students);
+                if (snap.data.subjects) setSubjects(snap.data.subjects);
+                if (snap.data.attendance) setAttendance(snap.data.attendance);
+
+                showMessage(document.getElementById('manage-message'), `✅ Backup restored from ${new Date(ts).toLocaleString()}`, 'success');
+                loadCurrentStudents();
+                loadCurrentSubjects();
+                return true;
+            } catch (e) {
+                alert('Failed to restore backup: ' + e.message);
+                return false;
+            }
+        }
+
+        function deleteAutoBackup(ts) {
+            if (!confirm(`Delete backup from ${new Date(ts).toLocaleString()}?`)) {
+                return;
+            }
+
+            try {
+                const backups = listAutoBackups();
+                const filtered = backups.filter(b => b.ts !== ts);
+                localStorage.setItem('attendance_backups', JSON.stringify(filtered));
+                showAutoBackups();
+                showMessage(document.getElementById('manage-message'), '✅ Backup deleted', 'success');
+            } catch (e) {
+                alert('Failed to delete backup: ' + e.message);
+            }
+        }
+
+        function showAutoBackups() {
+            const backups = listAutoBackups();
+            const container = document.getElementById('auto-backup-list');
+
+            if (backups.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No auto-backups available yet. First backup will be created in 15 minutes.</p>';
+                return;
+            }
+
+            let html = '<h4 style="margin-bottom: 15px; color: var(--text-primary);">📦 Available Auto-Backups</h4>';
+            html += '<p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">Auto-backups are created every 15 minutes. Last ' + AUTO_BACKUP_KEEP + ' snapshots are kept.</p>';
+
+            // Sort by timestamp descending (newest first)
+            backups.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+
+            backups.forEach((backup, index) => {
+                const date = new Date(backup.ts);
+                const isRecent = (new Date() - date) < 60 * 60 * 1000; // Less than 1 hour
+                const studentCount = backup.data.students ? backup.data.students.length : 0;
+                const subjectCount = backup.data.subjects ? backup.data.subjects.length : 0;
+                const attendanceCount = backup.data.attendance ? Object.keys(backup.data.attendance).length : 0;
+
+                html += `
+                    <div class="student-item" style="background: ${isRecent ? 'var(--primary-light)' : 'var(--surface-color)'};">
+                        <div class="student-info">
+                            <div class="student-name">
+                                ${isRecent ? '🔵 ' : ''}${date.toLocaleString()}
+                                ${index === 0 ? '<span style="background: var(--accent-color); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7em; margin-left: 8px;">Latest</span>' : ''}
+                            </div>
+                            <div class="student-roll" style="font-size: 0.85em;">
+                                ${studentCount} students • ${subjectCount} subjects • ${attendanceCount} records
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn btn-success" style="padding: 6px 12px; font-size: 0.8em; margin-right: 5px;" onclick="restoreAutoBackup('${backup.ts}')">
+                                ↩️ Restore
+                            </button>
+                            <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8em;" onclick="deleteAutoBackup('${backup.ts}')">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
 
         // Data storage utilities - ALL FUNCTIONS ARE AT GLOBAL SCOPE
         function getStudents() {
@@ -908,17 +1389,27 @@
                 document.getElementById('lecture-info').textContent = 'Select lecture number first';
             } else if (tabName === 'track') {
                 loadSubjects('track-subject');
+            } else if (tabName === 'calendar') {
+                loadSubjects('calendar-subject');
+                setCurrentMonth();
+                showCalendar();
+            } else if (tabName === 'analytics') {
+                loadSubjects('analytics-subject');
+                showAnalytics();
+            } else if (tabName === 'defaulters') {
+                showDefaulters();
             } else if (tabName === 'summary') {
                 loadSubjects('subject-wise-select');
                 selectSummaryType('student-wise');
             } else if (tabName === 'manage') {
                 loadCurrentStudents();
                 loadCurrentSubjects();
+                showAutoBackups();
             }
         }
 
         function getTabIndex(tabName) {
-            const tabs = ['attendance', 'track', 'summary', 'manage'];
+            const tabs = ['attendance', 'track', 'calendar', 'analytics', 'defaulters', 'summary', 'manage'];
             return tabs.indexOf(tabName) + 1;
         }
 
@@ -1029,25 +1520,32 @@
             const subjectSelect = document.getElementById('subject-select');
             const selectedSubjectId = subjectSelect.value;
             const studentAttendanceDiv = document.getElementById('student-attendance');
+            const bulkActionsDiv = document.getElementById('bulk-actions');
 
             if (!selectedSubjectId || !selectedLecture) {
                 studentAttendanceDiv.classList.add('hidden');
+                bulkActionsDiv.classList.add('hidden');
                 return;
             }
 
             const students = getStudents();
             studentAttendanceDiv.classList.remove('hidden');
+            bulkActionsDiv.classList.remove('hidden');
 
-            // Reset and preset all students as absent
-            currentAttendance = {};
-            students.forEach(student => {
-                currentAttendance[student.roll] = 'absent';
-            });
+            // If currentAttendance is empty, preset all students as absent
+            if (Object.keys(currentAttendance).length === 0) {
+                students.forEach(student => {
+                    currentAttendance[student.roll] = 'absent';
+                });
+            }
 
             let html = '<h3 style="margin-bottom: 15px; color: var(--text-primary);">Mark Attendance</h3>';
             html += '<p style="margin-bottom: 15px; padding: 10px; background: #fff3e0; border-radius: 8px; border-left: 4px solid var(--warning-color); font-size: 14px; color: var(--text-primary);">📝 <strong>Quick Mode:</strong> All students are preset as <strong>Absent</strong>. Click "Present" for students who attended.</p>';
 
             students.forEach(student => {
+                const status = currentAttendance[student.roll] || 'absent';
+                const isPresent = status === 'present';
+
                 html += `
                     <div class="student-item" data-roll="${student.roll}">
                         <div class="student-info">
@@ -1055,10 +1553,12 @@
                             <div class="student-roll">Roll: ${student.roll}</div>
                         </div>
                         <div>
-                            <button class="attendance-btn btn-present" onclick="markAttendance('${student.roll}', 'present', this)">
+                            <button class="attendance-btn btn-present" onclick="markAttendance('${student.roll}', '${isPresent ? 'absent' : 'present'}', this)" style="${isPresent ? 'opacity: 1; background: var(--accent-color); box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);' : ''}">
                                 ✓ Present
                             </button>
-                            <span class="attendance-status absent-status">✗ Absent</span>
+                            <span class="attendance-status ${isPresent ? 'present-status' : 'absent-status'}" style="${isPresent ? 'color: var(--accent-color); font-weight: bold;' : ''}">
+                                ${isPresent ? '✓ Present' : '✗ Absent'}
+                            </span>
                         </div>
                     </div>
                 `;
@@ -1158,7 +1658,21 @@
             };
 
             setAttendance(attendance);
-            showMessage(messageDiv, `✅ Attendance saved! ${presentCount} present, ${absentCount} absent out of ${totalCount} students for ${subjectName} - ${selectedLecture}${getOrdinalSuffix(selectedLecture)} lecture on ${date}`, 'success');
+
+            // Store for undo feature
+            lastSavedAttendance = {
+                key: key,
+                subject: subjectName,
+                date: date,
+                lectureNumber: selectedLecture
+            };
+
+            let successMessage = `✅ Attendance saved! ${presentCount} present, ${absentCount} absent out of ${totalCount} students for ${subjectName} - ${selectedLecture}${getOrdinalSuffix(selectedLecture)} lecture on ${date}`;
+            successMessage += '<br><button class="btn btn-secondary" onclick="undoLastAttendance()" style="margin-top: 10px; padding: 6px 12px; font-size: 12px;">↩️ Undo</button>';
+
+            messageDiv.innerHTML = successMessage;
+            messageDiv.className = 'message success';
+            messageDiv.classList.remove('hidden');
 
             currentAttendance = {};
             loadStudentsForAttendance();
@@ -1170,6 +1684,8 @@
             const subjectSelect = document.getElementById('track-subject');
             const selectedSubjectId = subjectSelect.value;
             const summaryDiv = document.getElementById('attendance-summary');
+            const dateFrom = document.getElementById('track-date-from').value;
+            const dateTo = document.getElementById('track-date-to').value;
 
             if (!selectedSubjectId) {
                 summaryDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Please select a subject to view attendance summary.</p>';
@@ -1177,11 +1693,34 @@
             }
 
             const attendance = getAttendance();
-            const subjectAttendance = Object.values(attendance).filter(record => record.subjectId == selectedSubjectId);
+            let subjectAttendance = Object.values(attendance).filter(record => record.subjectId == selectedSubjectId);
+
+            // Apply date filter if provided
+            if (dateFrom || dateTo) {
+                subjectAttendance = subjectAttendance.filter(record => {
+                    const recordDate = new Date(record.date);
+                    const fromDate = dateFrom ? new Date(dateFrom) : null;
+                    const toDate = dateTo ? new Date(dateTo) : null;
+
+                    if (fromDate && recordDate < fromDate) return false;
+                    if (toDate && recordDate > toDate) return false;
+                    return true;
+                });
+            }
 
             if (subjectAttendance.length === 0) {
-                summaryDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No attendance records found for this subject.</p>';
+                const filterMsg = (dateFrom || dateTo) ? ' for the selected date range' : '';
+                summaryDiv.innerHTML = `<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No attendance records found for this subject${filterMsg}.</p>`;
                 return;
+            }
+
+            // Show filter info if applied
+            let filterInfo = '';
+            if (dateFrom || dateTo) {
+                filterInfo = `<div style="background: var(--primary-light); padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; border-left: 4px solid var(--primary-color);">
+                    📅 Showing records ${dateFrom ? 'from ' + new Date(dateFrom).toLocaleDateString() : ''} ${dateTo ? 'to ' + new Date(dateTo).toLocaleDateString() : ''}
+                    <span style="margin-left: 10px; color: var(--text-secondary);">(${subjectAttendance.length} classes)</span>
+                </div>`;
             }
 
             subjectAttendance.sort((a, b) => {
@@ -1192,7 +1731,7 @@
                 return dateCompare;
             });
 
-            let html = '';
+            let html = filterInfo;
             subjectAttendance.forEach(record => {
                 const totalStudents = Object.keys(record.records || record.attendance || {}).length;
                 const attendanceRecords = record.records || record.attendance || {};
@@ -1257,6 +1796,162 @@
             summaryDiv.innerHTML = html;
         }
 
+        // Calendar functions
+        function setCurrentMonth() {
+            const today = new Date();
+            const monthString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('calendar-month').value = monthString;
+        }
+
+        function goToPrevMonth() {
+            const monthInput = document.getElementById('calendar-month');
+            const currentDate = new Date(monthInput.value + '-01');
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            monthInput.value = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+            showCalendar();
+        }
+
+        function goToNextMonth() {
+            const monthInput = document.getElementById('calendar-month');
+            const currentDate = new Date(monthInput.value + '-01');
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            monthInput.value = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+            showCalendar();
+        }
+
+        function showCalendar() {
+            const calendarView = document.getElementById('calendar-view');
+            const subjectId = document.getElementById('calendar-subject').value;
+            const monthValue = document.getElementById('calendar-month').value;
+
+            if (!monthValue) {
+                calendarView.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Please select a month.</p>';
+                return;
+            }
+
+            const [year, month] = monthValue.split('-').map(Number);
+            const firstDay = new Date(year, month - 1, 1);
+            const lastDay = new Date(year, month, 0);
+            const startingDayOfWeek = firstDay.getDay();
+            const daysInMonth = lastDay.getDate();
+
+            const attendance = getAttendance();
+            const monthAttendance = {};
+
+            // Process attendance for the selected month
+            Object.values(attendance).forEach(record => {
+                const recordDate = new Date(record.date);
+                if (recordDate.getFullYear() === year && recordDate.getMonth() === month - 1) {
+                    if (!subjectId || record.subjectId == subjectId) {
+                        const day = recordDate.getDate();
+                        if (!monthAttendance[day]) {
+                            monthAttendance[day] = [];
+                        }
+
+                        const attendanceRecords = record.records || record.attendance || {};
+                        const totalStudents = Object.keys(attendanceRecords).length;
+                        const presentStudents = Object.values(attendanceRecords).filter(status => status === 'present').length;
+                        const percentage = totalStudents > 0 ? ((presentStudents / totalStudents) * 100) : 0;
+
+                        monthAttendance[day].push({
+                            subject: record.subject,
+                            lectureNumber: record.lectureNumber,
+                            percentage: percentage,
+                            present: presentStudents,
+                            total: totalStudents
+                        });
+                    }
+                }
+            });
+
+            const today = new Date();
+            const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month - 1;
+            const todayDate = isCurrentMonth ? today.getDate() : null;
+
+            const monthName = firstDay.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+            let html = `
+                <h4 style="text-align: center; color: var(--primary-color); margin-bottom: 15px;">${monthName}</h4>
+                <div class="calendar-grid">
+                    <div class="calendar-day-header">Sun</div>
+                    <div class="calendar-day-header">Mon</div>
+                    <div class="calendar-day-header">Tue</div>
+                    <div class="calendar-day-header">Wed</div>
+                    <div class="calendar-day-header">Thu</div>
+                    <div class="calendar-day-header">Fri</div>
+                    <div class="calendar-day-header">Sat</div>
+            `;
+
+            // Add empty cells for days before the month starts
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                html += '<div class="calendar-day empty"></div>';
+            }
+
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayAttendance = monthAttendance[day];
+                let dayClass = 'calendar-day';
+                let dayInfo = '';
+
+                if (day === todayDate) {
+                    dayClass += ' today';
+                    dayInfo = 'Today';
+                } else if (dayAttendance && dayAttendance.length > 0) {
+                    const avgPercentage = dayAttendance.reduce((sum, a) => sum + a.percentage, 0) / dayAttendance.length;
+                    if (avgPercentage < 75) {
+                        dayClass += ' low-attendance';
+                    } else {
+                        dayClass += ' has-class';
+                    }
+                    dayInfo = `${dayAttendance.length} class${dayAttendance.length > 1 ? 'es' : ''}`;
+                }
+
+                const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                html += `
+                    <div class="${dayClass}" onclick="showDayDetails('${dateStr}')">
+                        <div class="calendar-day-number">${day}</div>
+                        ${dayInfo ? `<div class="calendar-day-info">${dayInfo}</div>` : ''}
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            calendarView.innerHTML = html;
+        }
+
+        function showDayDetails(dateStr) {
+            const attendance = getAttendance();
+            const dayAttendance = Object.values(attendance).filter(record => record.date === dateStr);
+
+            if (dayAttendance.length === 0) {
+                alert(`No classes on ${new Date(dateStr).toLocaleDateString()}`);
+                return;
+            }
+
+            let message = `📅 ${new Date(dateStr).toLocaleDateString()}\n\n`;
+            dayAttendance.forEach(record => {
+                const attendanceRecords = record.records || record.attendance || {};
+                const totalStudents = Object.keys(attendanceRecords).length;
+                const presentStudents = Object.values(attendanceRecords).filter(status => status === 'present').length;
+                const percentage = totalStudents > 0 ? ((presentStudents / totalStudents) * 100).toFixed(1) : 0;
+                const lectureInfo = record.lectureNumber ? ` - L${record.lectureNumber}` : '';
+
+                message += `${record.subject}${lectureInfo}\n`;
+                message += `Attendance: ${percentage}% (${presentStudents}/${totalStudents})\n\n`;
+            });
+
+            alert(message);
+        }
+
+        // Clear date filter
+        function clearDateFilter(tab) {
+            if (tab === 'track') {
+                document.getElementById('track-date-from').value = '';
+                document.getElementById('track-date-to').value = '';
+                showAttendanceSummary();
+            }
+        }
+
         // Summary type selection
         function selectSummaryType(type) {
             // Update buttons
@@ -1269,6 +1964,398 @@
 
             // Clear previous content
             document.getElementById('summary-content').innerHTML = '';
+        }
+
+        // Show Analytics Dashboard
+        function showAnalytics() {
+            const analyticsDiv = document.getElementById('analytics-content');
+            const subjectId = document.getElementById('analytics-subject').value;
+            const students = getStudents();
+            const attendance = getAttendance();
+            const subjects = getSubjects();
+
+            if (students.length === 0 || Object.keys(attendance).length === 0) {
+                analyticsDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No data available for analytics.</p>';
+                return;
+            }
+
+            let filteredAttendance = Object.values(attendance);
+            if (subjectId) {
+                filteredAttendance = filteredAttendance.filter(record => record.subjectId == subjectId);
+            }
+
+            // 1. Overall Statistics
+            const totalClasses = filteredAttendance.length;
+            let totalPresent = 0;
+            let totalAbsent = 0;
+
+            filteredAttendance.forEach(record => {
+                const attendanceRecords = record.records || record.attendance || {};
+                totalPresent += Object.values(attendanceRecords).filter(s => s === 'present').length;
+                totalAbsent += Object.values(attendanceRecords).filter(s => s === 'absent').length;
+            });
+
+            const overallPercentage = totalPresent + totalAbsent > 0 ? ((totalPresent / (totalPresent + totalAbsent)) * 100).toFixed(1) : 0;
+
+            // 2. Subject-wise comparison
+            const subjectStats = {};
+            Object.values(attendance).forEach(record => {
+                const subjectName = record.subject || 'Unknown';
+                if (!subjectStats[subjectName]) {
+                    subjectStats[subjectName] = { present: 0, absent: 0, classes: 0 };
+                }
+                subjectStats[subjectName].classes++;
+                const attendanceRecords = record.records || record.attendance || {};
+                subjectStats[subjectName].present += Object.values(attendanceRecords).filter(s => s === 'present').length;
+                subjectStats[subjectName].absent += Object.values(attendanceRecords).filter(s => s === 'absent').length;
+            });
+
+            // 3. Attendance trends (by date)
+            const dateStats = {};
+            filteredAttendance.forEach(record => {
+                const date = record.date;
+                if (!dateStats[date]) {
+                    dateStats[date] = { present: 0, total: 0 };
+                }
+                const attendanceRecords = record.records || record.attendance || {};
+                dateStats[date].present += Object.values(attendanceRecords).filter(s => s === 'present').length;
+                dateStats[date].total += Object.keys(attendanceRecords).length;
+            });
+
+            // 4. Peak absence days
+            const absenceDays = [];
+            Object.entries(dateStats).forEach(([date, stats]) => {
+                const absent = stats.total - stats.present;
+                const percentage = stats.total > 0 ? ((stats.present / stats.total) * 100) : 0;
+                absenceDays.push({ date, absent, percentage: percentage.toFixed(1), total: stats.total });
+            });
+            absenceDays.sort((a, b) => b.absent - a.absent);
+
+            // 5. Student engagement (best/worst)
+            const studentStats = {};
+            students.forEach(student => {
+                studentStats[student.roll] = {
+                    name: student.name,
+                    present: 0,
+                    absent: 0
+                };
+            });
+
+            filteredAttendance.forEach(record => {
+                const attendanceRecords = record.records || record.attendance || {};
+                Object.entries(attendanceRecords).forEach(([roll, status]) => {
+                    if (studentStats[roll]) {
+                        if (status === 'present') {
+                            studentStats[roll].present++;
+                        } else {
+                            studentStats[roll].absent++;
+                        }
+                    }
+                });
+            });
+
+            const studentList = Object.entries(studentStats)
+                .map(([roll, stats]) => ({
+                    roll,
+                    name: stats.name,
+                    total: stats.present + stats.absent,
+                    percentage: stats.present + stats.absent > 0 ? ((stats.present / (stats.present + stats.absent)) * 100).toFixed(1) : 0
+                }))
+                .filter(s => s.total > 0)
+                .sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage));
+
+            // Generate HTML
+            let html = `
+                <div class="enhanced-summary-card">
+                    <h4 style="color: var(--primary-color); margin-bottom: 15px; text-align: center;">📊 Overall Statistics</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
+                        <div style="text-align: center; padding: 15px; background: var(--primary-light); border-radius: 8px;">
+                            <div style="font-size: 2em; font-weight: bold; color: var(--primary-color);">${totalClasses}</div>
+                            <div style="color: var(--text-secondary); margin-top: 5px;">Total Classes</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #e8f5e8; border-radius: 8px;">
+                            <div style="font-size: 2em; font-weight: bold; color: var(--accent-color);">${totalPresent}</div>
+                            <div style="color: var(--text-secondary); margin-top: 5px;">Total Present</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #ffeaea; border-radius: 8px;">
+                            <div style="font-size: 2em; font-weight: bold; color: var(--error-color);">${totalAbsent}</div>
+                            <div style="color: var(--text-secondary); margin-top: 5px;">Total Absent</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: var(--surface-dark); border-radius: 8px;">
+                            <div style="font-size: 2em; font-weight: bold; color: var(--text-primary);">${overallPercentage}%</div>
+                            <div style="color: var(--text-secondary); margin-top: 5px;">Avg Attendance</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subject Comparison -->
+                <div class="enhanced-summary-card">
+                    <h4 style="color: var(--primary-color); margin-bottom: 15px;">📚 Subject-wise Comparison</h4>
+                    ${Object.entries(subjectStats).map(([subjectName, stats]) => {
+                const total = stats.present + stats.absent;
+                const percentage = total > 0 ? ((stats.present / total) * 100).toFixed(1) : 0;
+                const barColor = percentage >= 75 ? 'var(--accent-color)' : 'var(--error-color)';
+                return `
+                            <div style="margin-bottom: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                    <strong style="color: var(--text-primary);">${subjectName}</strong>
+                                    <span style="color: ${barColor}; font-weight: bold;">${percentage}%</span>
+                                </div>
+                                <div style="background: var(--divider-color); height: 10px; border-radius: 5px; overflow: hidden;">
+                                    <div style="background: ${barColor}; width: ${percentage}%; height: 100%; transition: width 0.3s;"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.85em; color: var(--text-secondary);">
+                                    <span>${stats.classes} classes</span>
+                                    <span>${stats.present} present / ${stats.absent} absent</span>
+                                </div>
+                            </div>
+                        `;
+            }).join('')}
+                </div>
+
+                <!-- Peak Absence Days -->
+                <div class="enhanced-summary-card">
+                    <h4 style="color: var(--error-color); margin-bottom: 15px;">📉 Days with Highest Absences</h4>
+                    ${absenceDays.slice(0, 5).map((day, index) => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: ${index === 0 ? '#ffeaea' : 'var(--surface-dark)'}; border-radius: 6px; margin-bottom: 8px; border-left: 4px solid ${index === 0 ? 'var(--error-color)' : 'var(--divider-color)'};">
+                            <div>
+                                <div style="font-weight: bold; color: var(--text-primary);">${new Date(day.date).toLocaleDateString()}</div>
+                                <div style="font-size: 0.85em; color: var(--text-secondary);">${day.absent} absent out of ${day.total}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.2em; font-weight: bold; color: ${day.percentage >= 75 ? 'var(--accent-color)' : 'var(--error-color)'};">${day.percentage}%</div>
+                                <div style="font-size: 0.8em; color: var(--text-secondary);">attendance</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <!-- Top & Bottom Performers -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="enhanced-summary-card" style="border-left-color: var(--accent-color);">
+                        <h4 style="color: var(--accent-color); margin-bottom: 15px;">🏆 Top Performers</h4>
+                        ${studentList.slice(0, 5).map((student, index) => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: ${index === 0 ? '#e8f5e8' : 'var(--surface-dark)'}; border-radius: 6px; margin-bottom: 6px;">
+                                <div>
+                                    <div style="font-weight: bold; font-size: 0.9em;">${student.name}</div>
+                                    <div style="font-size: 0.75em; color: var(--text-secondary);">${student.roll}</div>
+                                </div>
+                                <div style="font-weight: bold; color: var(--accent-color);">${student.percentage}%</div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="enhanced-summary-card" style="border-left-color: var(--error-color);">
+                        <h4 style="color: var(--error-color); margin-bottom: 15px;">⚠️ Need Attention</h4>
+                        ${studentList.slice(-5).reverse().map((student, index) => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: ${index === 0 ? '#ffeaea' : 'var(--surface-dark)'}; border-radius: 6px; margin-bottom: 6px;">
+                                <div>
+                                    <div style="font-weight: bold; font-size: 0.9em;">${student.name}</div>
+                                    <div style="font-size: 0.75em; color: var(--text-secondary);">${student.roll}</div>
+                                </div>
+                                <div style="font-weight: bold; color: var(--error-color);">${student.percentage}%</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Insights & Recommendations -->
+                <div class="enhanced-summary-card" style="background: linear-gradient(135deg, var(--primary-light), #f8f9fa);">
+                    <h4 style="color: var(--primary-color); margin-bottom: 15px;">💡 Insights & Recommendations</h4>
+                    <div style="display: grid; gap: 10px;">
+                        ${overallPercentage < 75 ? `
+                            <div style="padding: 10px; background: #fff3e0; border-left: 4px solid var(--warning-color); border-radius: 6px;">
+                                <strong>⚠️ Low Overall Attendance:</strong> Average attendance is ${overallPercentage}%. Consider implementing attendance improvement strategies.
+                            </div>
+                        ` : `
+                            <div style="padding: 10px; background: #e8f5e8; border-left: 4px solid var(--accent-color); border-radius: 6px;">
+                                <strong>✅ Healthy Attendance:</strong> Overall attendance of ${overallPercentage}% is good. Keep maintaining this standard!
+                            </div>
+                        `}
+                        ${studentList.filter(s => parseFloat(s.percentage) < 75).length > 0 ? `
+                            <div style="padding: 10px; background: #ffeaea; border-left: 4px solid var(--error-color); border-radius: 6px;">
+                                <strong>📧 Follow-up Required:</strong> ${studentList.filter(s => parseFloat(s.percentage) < 75).length} students below 75% threshold. Consider sending reminders.
+                            </div>
+                        ` : ''}
+                        ${absenceDays.length > 0 && absenceDays[0].absent > 10 ? `
+                            <div style="padding: 10px; background: #e3f2fd; border-left: 4px solid var(--primary-color); border-radius: 6px;">
+                                <strong>📅 Pattern Detected:</strong> ${new Date(absenceDays[0].date).toLocaleDateString()} had highest absences (${absenceDays[0].absent}). Check if it was a special day or holiday.
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            analyticsDiv.innerHTML = html;
+        }
+
+        // Show defaulters (students with low attendance)
+        function showDefaulters() {
+            const threshold = parseInt(document.getElementById('threshold-select').value);
+            const searchTerm = document.getElementById('defaulters-search').value.toLowerCase().trim();
+            const sortBy = document.getElementById('defaulters-sort').value;
+            const defaultersDiv = document.getElementById('defaulters-list');
+            const students = getStudents();
+            const attendance = getAttendance();
+
+            if (students.length === 0) {
+                defaultersDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No students found.</p>';
+                return;
+            }
+
+            const attendanceByStudent = {};
+            students.forEach(student => {
+                attendanceByStudent[student.roll] = {
+                    name: student.name,
+                    roll: student.roll,
+                    subjects: {}
+                };
+            });
+
+            // Process attendance by subject
+            Object.values(attendance).forEach(record => {
+                const attendanceRecords = record.records || record.attendance || {};
+                Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
+                    if (attendanceByStudent[rollNumber]) {
+                        const subjectName = record.subject || 'Unknown Subject';
+                        if (!attendanceByStudent[rollNumber].subjects[subjectName]) {
+                            attendanceByStudent[rollNumber].subjects[subjectName] = {
+                                present: 0,
+                                absent: 0
+                            };
+                        }
+
+                        if (status === 'present') {
+                            attendanceByStudent[rollNumber].subjects[subjectName].present++;
+                        } else {
+                            attendanceByStudent[rollNumber].subjects[subjectName].absent++;
+                        }
+                    }
+                });
+            });
+
+            // Find defaulters
+            const defaultersList = [];
+            Object.values(attendanceByStudent).forEach(student => {
+                const lowSubjects = [];
+                let hasAttendance = false;
+
+                Object.entries(student.subjects).forEach(([subjectName, subjectData]) => {
+                    hasAttendance = true;
+                    const total = subjectData.present + subjectData.absent;
+                    const percentage = total > 0 ? ((subjectData.present / total) * 100) : 0;
+
+                    if (percentage < threshold) {
+                        lowSubjects.push({
+                            name: subjectName,
+                            percentage: percentage.toFixed(1),
+                            present: subjectData.present,
+                            absent: subjectData.absent,
+                            total: total
+                        });
+                    }
+                });
+
+                if (lowSubjects.length > 0) {
+                    // Apply search filter
+                    if (!searchTerm ||
+                        student.name.toLowerCase().includes(searchTerm) ||
+                        student.roll.toLowerCase().includes(searchTerm)) {
+                        defaultersList.push({
+                            ...student,
+                            lowSubjects: lowSubjects
+                        });
+                    }
+                }
+            });
+
+            if (defaultersList.length === 0) {
+                const message = searchTerm
+                    ? `No students matching "${searchTerm}" are below ${threshold}% attendance.`
+                    : `No students are below ${threshold}% attendance threshold.`;
+
+                defaultersDiv.innerHTML = `
+                    <div style="text-align: center; padding: 40px; background: var(--surface-color); border-radius: var(--border-radius); box-shadow: var(--shadow-light);">
+                        <div style="font-size: 4em; margin-bottom: 20px;">${searchTerm ? '🔍' : '🎉'}</div>
+                        <h3 style="color: var(--accent-color); margin-bottom: 10px;">${searchTerm ? 'No Results' : 'Excellent!'}</h3>
+                        <p style="color: var(--text-secondary);">${message}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort defaulters list
+            switch (sortBy) {
+                case 'worst':
+                    defaultersList.sort((a, b) => {
+                        const aWorst = Math.min(...a.lowSubjects.map(s => parseFloat(s.percentage)));
+                        const bWorst = Math.min(...b.lowSubjects.map(s => parseFloat(s.percentage)));
+                        return aWorst - bWorst;
+                    });
+                    break;
+                case 'name':
+                    defaultersList.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'roll':
+                    defaultersList.sort((a, b) => a.roll.localeCompare(b.roll));
+                    break;
+            }
+
+            let html = `
+                <div style="background: var(--error-color); color: white; padding: 15px; border-radius: var(--border-radius); margin-bottom: 20px; text-align: center;">
+                    <h3 style="margin: 0 0 10px 0;">⚠️ ${defaultersList.length} Student${defaultersList.length > 1 ? 's' : ''} Need${defaultersList.length === 1 ? 's' : ''} Attention</h3>
+                    <p style="margin: 0; opacity: 0.9;">Below ${threshold}% attendance threshold</p>
+                </div>
+            `;
+
+            defaultersList.forEach(student => {
+                const worstPercentage = Math.min(...student.lowSubjects.map(s => parseFloat(s.percentage)));
+                const severityClass = worstPercentage < 60 ? 'critical' : worstPercentage < 70 ? 'warning' : 'caution';
+                const severityColor = worstPercentage < 60 ? '#d32f2f' : worstPercentage < 70 ? '#f57c00' : '#ff9800';
+
+                html += `
+                    <div class="enhanced-summary-card" style="border-left: 4px solid ${severityColor};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h4 style="color: var(--text-primary); margin: 0;">
+                                ${student.name} (${student.roll})
+                            </h4>
+                            <span style="background: ${severityColor}; color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.9em; font-weight: bold;">
+                                ${worstPercentage.toFixed(1)}% lowest
+                            </span>
+                        </div>
+
+                        <div style="display: grid; gap: 10px;">
+                            ${student.lowSubjects.map(subject => `
+                                <div style="background: #ffeaea; border: 1px solid ${severityColor}; border-radius: 8px; padding: 12px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <strong style="color: var(--text-primary);">${subject.name}</strong>
+                                        <span style="color: ${severityColor}; font-weight: bold; font-size: 1.1em;">${subject.percentage}%</span>
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 0.9em;">
+                                        <div style="text-align: center;">
+                                            <div style="color: var(--accent-color); font-weight: bold;">${subject.present}</div>
+                                            <div style="color: var(--text-secondary); font-size: 0.8em;">Present</div>
+                                        </div>
+                                        <div style="text-align: center;">
+                                            <div style="color: var(--error-color); font-weight: bold;">${subject.absent}</div>
+                                            <div style="color: var(--text-secondary); font-size: 0.8em;">Absent</div>
+                                        </div>
+                                        <div style="text-align: center;">
+                                            <div style="color: var(--text-primary); font-weight: bold;">${subject.total}</div>
+                                            <div style="color: var(--text-secondary); font-size: 0.8em;">Total</div>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top: 8px; padding: 6px; background: white; border-radius: 4px; font-size: 0.85em; color: var(--text-secondary);">
+                                        💡 Needs ${Math.ceil((threshold * subject.total - subject.present * 100) / (100 - threshold))} more classes to reach ${threshold}%
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            defaultersDiv.innerHTML = html;
         }
 
         // Generate student summary
@@ -1325,10 +2412,18 @@
             Object.values(attendanceByStudent).forEach(student => {
                 if (Object.keys(student.subjects).length === 0) return;
 
+                // Check if student has low attendance in any subject
+                const hasLowAttendance = Object.values(student.subjects).some(subjectData => {
+                    const total = subjectData.present + subjectData.absent;
+                    const percentage = total > 0 ? ((subjectData.present / total) * 100) : 0;
+                    return percentage < 75;
+                });
+
                 html += `
                     <div class="enhanced-summary-card">
-                        <h4 style="color: var(--primary-color); margin-bottom: 15px;">
-                            ${student.name} (${student.roll})
+                        <h4 style="color: var(--primary-color); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                            <span>${student.name} (${student.roll})</span>
+                            ${hasLowAttendance ? '<span style="background: var(--error-color); color: white; padding: 4px 12px; border-radius: 15px; font-size: 0.8em; animation: pulse 2s infinite;">⚠️ Low Attendance</span>' : ''}
                         </h4>
                 `;
 
@@ -1594,6 +2689,120 @@
             });
 
             summaryDiv.innerHTML = html;
+        }
+
+        // Share attendance summary via WhatsApp
+        function shareViaWhatsApp(summaryType) {
+            let message = '';
+
+            if (summaryType === 'student-wise') {
+                const students = getStudents();
+                const attendance = getAttendance();
+
+                if (students.length === 0) {
+                    alert('No students found to share.');
+                    return;
+                }
+
+                const attendanceByStudent = {};
+                students.forEach(student => {
+                    attendanceByStudent[student.roll] = {
+                        name: student.name,
+                        roll: student.roll,
+                        subjects: {}
+                    };
+                });
+
+                Object.values(attendance).forEach(record => {
+                    const attendanceRecords = record.records || record.attendance || {};
+                    Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
+                        if (attendanceByStudent[rollNumber]) {
+                            const subjectName = record.subject || 'Unknown Subject';
+                            if (!attendanceByStudent[rollNumber].subjects[subjectName]) {
+                                attendanceByStudent[rollNumber].subjects[subjectName] = { present: 0, absent: 0 };
+                            }
+                            if (status === 'present') {
+                                attendanceByStudent[rollNumber].subjects[subjectName].present++;
+                            } else {
+                                attendanceByStudent[rollNumber].subjects[subjectName].absent++;
+                            }
+                        }
+                    });
+                });
+
+                message = `📊 *STUDENT WISE ATTENDANCE REPORT*\n`;
+                message += `📅 Generated: ${new Date().toLocaleDateString()}\n`;
+                message += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+                Object.values(attendanceByStudent).forEach(student => {
+                    if (Object.keys(student.subjects).length === 0) return;
+
+                    message += `👤 *${student.name}* (${student.roll})\n`;
+                    Object.entries(student.subjects).forEach(([subjectName, subjectData]) => {
+                        const total = subjectData.present + subjectData.absent;
+                        const percentage = total > 0 ? ((subjectData.present / total) * 100).toFixed(1) : 0;
+                        const emoji = percentage >= 75 ? '✅' : '⚠️';
+                        message += `  ${emoji} ${subjectName}: ${percentage}% (${subjectData.present}/${total})\n`;
+                    });
+                    message += `\n`;
+                });
+
+            } else if (summaryType === 'subject-wise') {
+                const subjectId = document.getElementById('subject-wise-select').value;
+                if (!subjectId) {
+                    alert('Please select a subject first.');
+                    return;
+                }
+
+                const subjects = getSubjects();
+                const selectedSubject = subjects.find(s => s.id == subjectId);
+                const subjectName = selectedSubject ? selectedSubject.name : 'Unknown Subject';
+                const attendance = getAttendance();
+                const subjectAttendance = Object.values(attendance).filter(record => record.subjectId == subjectId);
+
+                if (subjectAttendance.length === 0) {
+                    alert('No attendance records found for this subject.');
+                    return;
+                }
+
+                subjectAttendance.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                message = `📚 *SUBJECT WISE ATTENDANCE REPORT*\n`;
+                message += `Subject: *${subjectName}*\n`;
+                message += `📅 Generated: ${new Date().toLocaleDateString()}\n`;
+                message += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+                subjectAttendance.forEach(record => {
+                    const attendanceRecords = record.records || record.attendance || {};
+                    const totalStudents = Object.keys(attendanceRecords).length;
+                    const presentStudents = Object.values(attendanceRecords).filter(status => status === 'present').length;
+                    const percentage = totalStudents > 0 ? ((presentStudents / totalStudents) * 100).toFixed(1) : 0;
+                    const lectureInfo = record.lectureNumber ? ` - Lecture ${record.lectureNumber}` : '';
+
+                    message += `📅 *${new Date(record.date).toLocaleDateString()}*${lectureInfo}\n`;
+                    message += `Attendance: ${percentage}% (${presentStudents}/${totalStudents})\n`;
+
+                    const absentList = [];
+                    Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
+                        if (status === 'absent') {
+                            const student = getStudents().find(s => s.roll === rollNumber);
+                            absentList.push(student ? student.name.split(' ')[0] : rollNumber);
+                        }
+                    });
+
+                    if (absentList.length > 0) {
+                        message += `Absent: ${absentList.join(', ')}\n`;
+                    }
+                    message += `\n`;
+                });
+            }
+
+            message += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
+            message += `Generated by Attendance Tracker 📱`;
+
+            // Encode and open WhatsApp
+            const whatsappURL = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappURL, '_blank');
         }
 
         // Export Student Wise Summary to PDF
@@ -2344,6 +3553,12 @@
 
         // Event listeners and initialization
         document.addEventListener('DOMContentLoaded', function () {
+            // Load dark mode preference
+            loadDarkModePreference();
+
+            // Start auto-backup system
+            startAutoBackup();
+
             // Subject selection for attendance
             document.getElementById('subject-select').addEventListener('change', function () {
                 loadStudentsForAttendance();
@@ -2369,6 +3584,10 @@
 
             // Subject selection for tracking
             document.getElementById('track-subject').addEventListener('change', showAttendanceSummary);
+
+            // Date filter change handlers
+            document.getElementById('track-date-from').addEventListener('change', showAttendanceSummary);
+            document.getElementById('track-date-to').addEventListener('change', showAttendanceSummary);
 
             // Enter key handlers for forms
             document.getElementById('student-name').addEventListener('keypress', function (e) {
