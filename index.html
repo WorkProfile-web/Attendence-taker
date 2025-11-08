@@ -659,6 +659,24 @@
             border-color: #d32f2f;
         }
 
+        .calendar-day .day-number {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .calendar-day .class-indicator {
+            font-size: 10px;
+            padding: 2px 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            margin: 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
         .calendar-day.today {
             background: var(--primary-color);
             color: white;
@@ -698,6 +716,10 @@
                 font-size: 1.5rem;
             }
 
+            .header p {
+                font-size: 0.9rem;
+            }
+
             .btn {
                 padding: 10px 20px;
                 font-size: 14px;
@@ -722,6 +744,217 @@
 
             .tab-label {
                 font-size: 0.7em;
+            }
+
+            /* Calendar optimizations for mobile */
+            .calendar-grid {
+                gap: 4px;
+            }
+
+            .calendar-day-header {
+                padding: 6px 2px;
+                font-size: 11px;
+            }
+
+            .calendar-day {
+                padding: 4px 2px;
+                font-size: 12px;
+                min-height: 45px;
+            }
+
+            .calendar-day .day-number {
+                font-size: 13px;
+                margin-bottom: 2px;
+            }
+
+            .calendar-day .class-indicator {
+                font-size: 8px;
+                padding: 1px 3px;
+                margin: 1px 0;
+            }
+
+            /* Calendar navigation for mobile */
+            .calendar-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .calendar-controls button {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            /* Analytics grid optimization */
+            .analytics-grid-2col {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Make all 2-column grids single column on mobile */
+            div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Summary type selection - make scrollable on very small screens */
+            .summary-type-selection {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+                padding: 8px;
+            }
+
+            .summary-type-btn {
+                padding: 8px 4px;
+                font-size: 11px;
+            }
+
+            /* Lecture selection buttons */
+            .lecture-selection {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .lecture-btn {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            /* Student list items */
+            .student-item {
+                padding: 12px;
+            }
+
+            .student-name {
+                font-size: 14px;
+            }
+
+            .student-roll {
+                font-size: 12px;
+            }
+
+            /* Form inputs */
+            select,
+            input {
+                font-size: 14px;
+            }
+
+            /* Enhanced summary cards */
+            .enhanced-summary-card {
+                padding: 12px;
+                margin-bottom: 12px;
+            }
+
+            .enhanced-summary-card h4 {
+                font-size: 16px;
+            }
+
+            /* Date range filters */
+            .date-filters {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            /* Defaulters search and sort */
+            .defaulters-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            /* Month navigation in calendar */
+            .month-navigation {
+                gap: 8px;
+            }
+
+            .month-navigation button {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            /* Auto-backup list items */
+            .student-item .student-info {
+                max-width: calc(100% - 120px);
+            }
+
+            /* Reduce padding in danger zone */
+            .danger-zone {
+                padding: 15px;
+            }
+
+            /* WhatsApp button and export buttons */
+            .export-options button {
+                font-size: 13px;
+                padding: 10px;
+            }
+
+            /* Analytics stats grid */
+            div[style*="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr))"] {
+                gap: 10px !important;
+            }
+
+            /* Make threshold and search inputs full width on mobile */
+            #threshold-select,
+            #defaulters-search,
+            #defaulters-sort {
+                width: 100%;
+            }
+
+            /* Calendar legend on mobile */
+            .calendar-legend {
+                grid-template-columns: 1fr !important;
+                padding: 10px !important;
+                gap: 8px !important;
+            }
+
+            .calendar-legend>div {
+                font-size: 13px !important;
+            }
+
+            .calendar-legend span {
+                font-size: 13px !important;
+            }
+
+            /* Better touch targets for mobile */
+            .btn {
+                min-height: 44px;
+            }
+
+            .lecture-btn {
+                min-height: 44px;
+            }
+
+            /* Status toggle buttons in attendance list */
+            .status-toggle {
+                padding: 8px 16px !important;
+                font-size: 13px !important;
+            }
+
+            /* Responsive tables and grids in Reports */
+            .summary-stats {
+                font-size: 13px;
+            }
+
+            .stat-card {
+                padding: 12px !important;
+            }
+
+            /* Analytics dashboard responsive adjustments */
+            .enhanced-summary-card div[style*="font-size: 2em"] {
+                font-size: 1.5em !important;
+            }
+
+            /* Make month input and navigation buttons stack better */
+            .calendar-controls {
+                grid-template-columns: 1fr auto auto !important;
+            }
+
+            .calendar-controls input {
+                min-width: 0;
+            }
+
+            /* Overflow handling for long student names */
+            .student-name,
+            .student-roll {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
         }
     </style>
@@ -799,7 +1032,7 @@
 
             <div class="form-group">
                 <label>📅 Date Range Filter (Optional):</label>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="date-filters" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div>
                         <label for="track-date-from" style="font-size: 12px; font-weight: normal;">From:</label>
                         <input type="date" id="track-date-from">
@@ -837,7 +1070,8 @@
 
             <div class="form-group">
                 <label>Select Month:</label>
-                <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: end;">
+                <div class="calendar-controls"
+                    style="display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: end;">
                     <input type="month" id="calendar-month" onchange="showCalendar()">
                     <button class="btn btn-secondary" onclick="goToPrevMonth()" style="padding: 8px 12px;">◀</button>
                     <button class="btn btn-secondary" onclick="goToNextMonth()" style="padding: 8px 12px;">▶</button>
@@ -848,7 +1082,7 @@
                 <!-- Calendar will be rendered here -->
             </div>
 
-            <div id="calendar-legend"
+            <div id="calendar-legend" class="calendar-legend"
                 style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px; padding: 15px; background: var(--surface-dark); border-radius: var(--border-radius);">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <div style="width: 20px; height: 20px; background: var(--accent-color); border-radius: 4px;"></div>
@@ -948,6 +1182,28 @@
                 <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">
                     Shows all students with attendance details for each subject including absent dates.
                 </p>
+
+                <!-- Date Filter for Student Wise -->
+                <div class="form-group">
+                    <label>📅 Date Range Filter (Optional):</label>
+                    <div class="date-filters"
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                        <div>
+                            <label for="student-wise-date-from"
+                                style="font-size: 12px; font-weight: normal;">From:</label>
+                            <input type="date" id="student-wise-date-from">
+                        </div>
+                        <div>
+                            <label for="student-wise-date-to" style="font-size: 12px; font-weight: normal;">To:</label>
+                            <input type="date" id="student-wise-date-to">
+                        </div>
+                    </div>
+                    <button class="btn" onclick="clearDateFilter('student-wise')"
+                        style="width: 100%; padding: 6px; font-size: 13px; margin-bottom: 10px;">
+                        🔄 Clear Filter (Show All Data)
+                    </button>
+                </div>
+
                 <div class="export-options">
                     <button class="btn btn-success btn-block" onclick="generateStudentWiseSummary()">
                         📊 View Summary
@@ -974,6 +1230,28 @@
                         <option value="">Choose a subject...</option>
                     </select>
                 </div>
+
+                <!-- Date Filter for Subject Wise -->
+                <div class="form-group">
+                    <label>📅 Date Range Filter (Optional):</label>
+                    <div class="date-filters"
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                        <div>
+                            <label for="subject-wise-date-from"
+                                style="font-size: 12px; font-weight: normal;">From:</label>
+                            <input type="date" id="subject-wise-date-from">
+                        </div>
+                        <div>
+                            <label for="subject-wise-date-to" style="font-size: 12px; font-weight: normal;">To:</label>
+                            <input type="date" id="subject-wise-date-to">
+                        </div>
+                    </div>
+                    <button class="btn" onclick="clearDateFilter('subject-wise')"
+                        style="width: 100%; padding: 6px; font-size: 13px; margin-bottom: 10px;">
+                        🔄 Clear Filter (Show All Data)
+                    </button>
+                </div>
+
                 <div class="export-options">
                     <button class="btn btn-success btn-block" onclick="generateSubjectWiseSummary()">
                         📊 View Summary
@@ -998,6 +1276,28 @@
                     <label for="roll-search-input">Enter Roll Number (partial or complete):</label>
                     <input type="text" id="roll-search-input" placeholder="e.g., 2021-CS-001 or just 001">
                 </div>
+
+                <!-- Date Filter for Roll Search -->
+                <div class="form-group">
+                    <label>📅 Date Range Filter (Optional):</label>
+                    <div class="date-filters"
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                        <div>
+                            <label for="roll-search-date-from"
+                                style="font-size: 12px; font-weight: normal;">From:</label>
+                            <input type="date" id="roll-search-date-from">
+                        </div>
+                        <div>
+                            <label for="roll-search-date-to" style="font-size: 12px; font-weight: normal;">To:</label>
+                            <input type="date" id="roll-search-date-to">
+                        </div>
+                    </div>
+                    <button class="btn" onclick="clearDateFilter('roll-search')"
+                        style="width: 100%; padding: 6px; font-size: 13px; margin-bottom: 10px;">
+                        🔄 Clear Filter (Show All Data)
+                    </button>
+                </div>
+
                 <div class="export-options">
                     <button class="btn btn-success btn-block" onclick="generateRollSearchSummary()">
                         🔍 Search & View
@@ -1949,6 +2249,15 @@
                 document.getElementById('track-date-from').value = '';
                 document.getElementById('track-date-to').value = '';
                 showAttendanceSummary();
+            } else if (tab === 'student-wise') {
+                document.getElementById('student-wise-date-from').value = '';
+                document.getElementById('student-wise-date-to').value = '';
+            } else if (tab === 'subject-wise') {
+                document.getElementById('subject-wise-date-from').value = '';
+                document.getElementById('subject-wise-date-to').value = '';
+            } else if (tab === 'roll-search') {
+                document.getElementById('roll-search-date-from').value = '';
+                document.getElementById('roll-search-date-to').value = '';
             }
         }
 
@@ -2131,7 +2440,7 @@
                 </div>
 
                 <!-- Top & Bottom Performers -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="analytics-grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="enhanced-summary-card" style="border-left-color: var(--accent-color);">
                         <h4 style="color: var(--accent-color); margin-bottom: 15px;">🏆 Top Performers</h4>
                         ${studentList.slice(0, 5).map((student, index) => `
@@ -2366,6 +2675,10 @@
             const attendance = getAttendance();
             const subjects = getSubjects();
 
+            // Get date filter values
+            const dateFrom = document.getElementById('student-wise-date-from').value;
+            const dateTo = document.getElementById('student-wise-date-to').value;
+
             if (students.length === 0) {
                 summaryDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No students found.</p>';
                 return;
@@ -2380,8 +2693,12 @@
                 };
             });
 
-            // Process attendance by subject
+            // Process attendance by subject with date filtering
             Object.values(attendance).forEach(record => {
+                // Apply date filter
+                if (dateFrom && record.date < dateFrom) return;
+                if (dateTo && record.date > dateTo) return;
+
                 const attendanceRecords = record.records || record.attendance || {};
                 Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
                     if (attendanceByStudent[rollNumber]) {
@@ -2408,6 +2725,20 @@
             });
 
             let html = '<h3 style="margin-bottom: 20px; color: var(--text-primary);">👥 Student Wise Summary</h3>';
+
+            // Show date range info if filters are applied
+            if (dateFrom || dateTo) {
+                html += '<div style="background: var(--primary-light); padding: 10px; border-radius: 6px; margin-bottom: 15px; text-align: center;">';
+                html += '<strong>📅 Filtered Data:</strong> ';
+                if (dateFrom && dateTo) {
+                    html += `${new Date(dateFrom).toLocaleDateString()} to ${new Date(dateTo).toLocaleDateString()}`;
+                } else if (dateFrom) {
+                    html += `From ${new Date(dateFrom).toLocaleDateString()} onwards`;
+                } else {
+                    html += `Up to ${new Date(dateTo).toLocaleDateString()}`;
+                }
+                html += '</div>';
+            }
 
             Object.values(attendanceByStudent).forEach(student => {
                 if (Object.keys(student.subjects).length === 0) return;
@@ -2477,6 +2808,10 @@
             const subjectId = document.getElementById('subject-wise-select').value;
             const summaryDiv = document.getElementById('summary-content');
 
+            // Get date filter values
+            const dateFrom = document.getElementById('subject-wise-date-from').value;
+            const dateTo = document.getElementById('subject-wise-date-to').value;
+
             if (!subjectId) {
                 summaryDiv.innerHTML = '<p style="color: var(--error-color); text-align: center; padding: 20px;">Please select a subject first.</p>';
                 return;
@@ -2487,10 +2822,18 @@
             const subjectName = selectedSubject ? selectedSubject.name : 'Unknown Subject';
 
             const attendance = getAttendance();
-            const subjectAttendance = Object.values(attendance).filter(record => record.subjectId == subjectId);
+            let subjectAttendance = Object.values(attendance).filter(record => record.subjectId == subjectId);
+
+            // Apply date filter
+            if (dateFrom) {
+                subjectAttendance = subjectAttendance.filter(record => record.date >= dateFrom);
+            }
+            if (dateTo) {
+                subjectAttendance = subjectAttendance.filter(record => record.date <= dateTo);
+            }
 
             if (subjectAttendance.length === 0) {
-                summaryDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No attendance records found for this subject.</p>';
+                summaryDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No attendance records found for this subject' + (dateFrom || dateTo ? ' in the selected date range.' : '.') + '</p>';
                 return;
             }
 
@@ -2504,6 +2847,20 @@
             });
 
             let html = `<h3 style="margin-bottom: 20px; color: var(--text-primary);">📚 Subject Wise Summary - ${subjectName}</h3>`;
+
+            // Show date range info if filters are applied
+            if (dateFrom || dateTo) {
+                html += '<div style="background: var(--primary-light); padding: 10px; border-radius: 6px; margin-bottom: 15px; text-align: center;">';
+                html += '<strong>📅 Filtered Data:</strong> ';
+                if (dateFrom && dateTo) {
+                    html += `${new Date(dateFrom).toLocaleDateString()} to ${new Date(dateTo).toLocaleDateString()}`;
+                } else if (dateFrom) {
+                    html += `From ${new Date(dateFrom).toLocaleDateString()} onwards`;
+                } else {
+                    html += `Up to ${new Date(dateTo).toLocaleDateString()}`;
+                }
+                html += '</div>';
+            }
 
             subjectAttendance.forEach(record => {
                 const attendanceRecords = record.records || record.attendance || {};
@@ -2580,6 +2937,10 @@
             const searchTerm = document.getElementById('roll-search-input').value.trim();
             const summaryDiv = document.getElementById('summary-content');
 
+            // Get date filter values
+            const dateFrom = document.getElementById('roll-search-date-from').value;
+            const dateTo = document.getElementById('roll-search-date-to').value;
+
             if (!searchTerm) {
                 summaryDiv.innerHTML = '<p style="color: var(--error-color); text-align: center; padding: 20px;">Please enter a roll number to search.</p>';
                 return;
@@ -2600,6 +2961,20 @@
 
             let html = `<h3 style="margin-bottom: 20px; color: var(--text-primary);">🔍 Roll Search Results for "${searchTerm}"</h3>`;
 
+            // Show date range info if filters are applied
+            if (dateFrom || dateTo) {
+                html += '<div style="background: var(--primary-light); padding: 10px; border-radius: 6px; margin-bottom: 15px; text-align: center;">';
+                html += '<strong>📅 Filtered Data:</strong> ';
+                if (dateFrom && dateTo) {
+                    html += `${new Date(dateFrom).toLocaleDateString()} to ${new Date(dateTo).toLocaleDateString()}`;
+                } else if (dateFrom) {
+                    html += `From ${new Date(dateFrom).toLocaleDateString()} onwards`;
+                } else {
+                    html += `Up to ${new Date(dateTo).toLocaleDateString()}`;
+                }
+                html += '</div>';
+            }
+
             matchingStudents.forEach(student => {
                 html += `
                     <div class="enhanced-summary-card">
@@ -2610,8 +2985,12 @@
 
                 const studentSubjects = {};
 
-                // Process attendance for this student
+                // Process attendance for this student with date filtering
                 Object.values(attendance).forEach(record => {
+                    // Apply date filter
+                    if (dateFrom && record.date < dateFrom) return;
+                    if (dateTo && record.date > dateTo) return;
+
                     const attendanceRecords = record.records || record.attendance || {};
                     if (attendanceRecords[student.roll]) {
                         const subjectName = record.subject || 'Unknown Subject';
