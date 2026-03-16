@@ -2344,10 +2344,11 @@
         async function loadStudentsForAttendance() {
             const subjectSelect = document.getElementById('subject-select');
             const selectedSubjectId = subjectSelect.value;
+            const date = document.getElementById('class-date').value;
             const studentAttendanceDiv = document.getElementById('student-attendance');
             const bulkActionsDiv = document.getElementById('bulk-actions');
 
-            if (!selectedSubjectId || !selectedLecture) {
+            if (!selectedSubjectId || !selectedLecture || !date) {
                 studentAttendanceDiv.classList.add('hidden');
                 bulkActionsDiv.classList.add('hidden');
                 return;
@@ -2358,15 +2359,26 @@
             studentAttendanceDiv.classList.remove('hidden');
             bulkActionsDiv.classList.remove('hidden');
 
-            // If currentAttendance is empty, preset all students as absent
-            if (Object.keys(currentAttendance).length === 0) {
-                students.forEach(student => {
+            // Load existing attendance for this lecture if present; otherwise preset all as absent
+            const attendance = await getAttendance();
+            const key = `${date}_${selectedSubjectId}_${selectedLecture}`;
+            const existingRecord = attendance[key];
+
+            currentAttendance = {};
+            students.forEach(student => {
+                if (existingRecord && existingRecord.records && existingRecord.records[student.roll]) {
+                    currentAttendance[student.roll] = existingRecord.records[student.roll];
+                } else {
                     currentAttendance[student.roll] = 'absent';
-                });
-            }
+                }
+            });
 
             let html = '<h3 style="margin-bottom: 15px; color: var(--text-primary);">Mark Attendance</h3>';
-            html += '<p style="margin-bottom: 15px; padding: 10px; background: #fff3e0; border-radius: 8px; border-left: 4px solid var(--warning-color); font-size: 14px; color: var(--text-primary);">📝 <strong>Quick Mode:</strong> All students are preset as <strong>Absent</strong>. Click "Present" for students who attended.</p>';
+            if (existingRecord) {
+                html += '<p style="margin-bottom: 15px; padding: 10px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid var(--accent-color); font-size: 14px; color: var(--text-primary);">✏️ <strong>Edit Mode:</strong> Existing attendance loaded for this subject/date/lecture. Update any student and click <strong>Save Attendance</strong>.</p>';
+            } else {
+                html += '<p style="margin-bottom: 15px; padding: 10px; background: #fff3e0; border-radius: 8px; border-left: 4px solid var(--warning-color); font-size: 14px; color: var(--text-primary);">📝 <strong>Quick Mode:</strong> All students are preset as <strong>Absent</strong>. Click "Present" for students who attended.</p>';
+            }
 
             students.forEach(student => {
                 const status = currentAttendance[student.roll] || 'absent';
@@ -2579,12 +2591,18 @@
                 });
 
                 const lectureInfo = record.lectureNumber ? ` - ${record.lectureNumber}${getOrdinalSuffix(record.lectureNumber)} Lecture` : '';
+                const editButton = record.lectureNumber
+                    ? `<button class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px;" onclick="editAttendanceRecord('${record.subjectId}', '${record.date}', ${record.lectureNumber})">✏️ Edit</button>`
+                    : '';
 
                 html += `
                     <div class="summary-card">
                         <div class="summary-header">
                             <div class="summary-title">${record.subject}${lectureInfo}</div>
-                            <div class="summary-percentage">${percentage}%</div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="summary-percentage">${percentage}%</div>
+                                ${editButton}
+                            </div>
                         </div>
                         <div class="summary-stats">
                             <div class="stat-item">
@@ -2626,6 +2644,34 @@
             });
 
             summaryDiv.innerHTML = html;
+        }
+
+        // Jump to Take tab and open an existing attendance record in edit mode
+        async function editAttendanceRecord(subjectId, date, lectureNumber) {
+            const lecture = Number(lectureNumber);
+            if (!lecture) {
+                alert('This attendance record has no lecture number, so it cannot be edited from Track tab.');
+                return;
+            }
+
+            await switchTab('attendance');
+
+            document.getElementById('subject-select').value = subjectId;
+            document.getElementById('class-date').value = date;
+            selectedLecture = lecture;
+
+            document.querySelectorAll('.lecture-btn').forEach(btn => btn.classList.remove('selected'));
+            const selectedLectureBtn = document.querySelector(`.lecture-btn[onclick="selectLecture(${lecture})"]`);
+            if (selectedLectureBtn) {
+                selectedLectureBtn.classList.add('selected');
+            }
+
+            await updateLectureInfo(subjectId, date, lecture);
+            await loadStudentsForAttendance();
+            await showLectureSequence(subjectId, date);
+
+            const messageDiv = document.getElementById('attendance-message');
+            showMessage(messageDiv, 'Edit mode opened for the selected attendance record. Update and save.', 'success');
         }
 
         // Calendar functions
@@ -4439,6 +4485,7 @@
 
             // Date change for attendance
             document.getElementById('class-date').addEventListener('change', async function () {
+                await loadStudentsForAttendance();
                 if (selectedLecture) {
                     const subjectId = document.getElementById('subject-select').value;
                     const date = this.value;
