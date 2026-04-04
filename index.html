@@ -4261,9 +4261,17 @@
         }
 
         // Add new student
+        function normalizeRollNumber(value) {
+            return String(value ?? '')
+                .replace(/^\uFEFF/, '')
+                .replace(/^[\s•·▪‣◦⁃]+/, '')
+                .replace(/^â€¢+/, '')
+                .trim();
+        }
+
         async function addStudent() {
             const name = document.getElementById('student-name').value.trim();
-            const roll = document.getElementById('student-roll').value.trim();
+            const roll = normalizeRollNumber(document.getElementById('student-roll').value);
             const messageDiv = document.getElementById('manage-message');
 
             if (!name || !roll) {
@@ -4329,7 +4337,7 @@
                     return;
                 }
 
-                const roll = parts[0].trim();
+                const roll = normalizeRollNumber(parts[0]);
                 const name = parts[1].trim();
 
                 if (!roll || !name) {
