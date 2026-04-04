@@ -3795,6 +3795,35 @@
                 return;
             }
 
+            const escapeCsv = (value) => {
+                const str = String(value ?? '');
+                if (str.includes('"') || str.includes(',') || str.includes('\n')) {
+                    return '"' + str.replace(/"/g, '""') + '"';
+                }
+                return str;
+            };
+
+            const parseRoll = (roll) => {
+                const rollText = String(roll ?? '');
+                const match = rollText.match(/^(.*?)(\d+)([^\d]*)$/);
+                if (!match) {
+                    return null;
+                }
+
+                return {
+                    prefix: match[1],
+                    number: parseInt(match[2], 10),
+                    width: match[2].length,
+                    suffix: match[3],
+                    original: rollText
+                };
+            };
+
+            const formatRoll = (template, number) => {
+                const numericPart = String(number).padStart(template.width, '0');
+                return `${template.prefix}${numericPart}${template.suffix}`;
+            };
+
             subjectAttendance.sort((a, b) => {
                 const dateCompare = new Date(a.date) - new Date(b.date);
                 if (dateCompare === 0) {
@@ -3803,44 +3832,130 @@
                 return dateCompare;
             });
 
-            const csvRows = [
-                ['Subject', 'Date', 'Lecture', 'Total Students', 'Present', 'Absent', 'Attendance %', 'Absent Students (Roll - Name)']
-            ];
-
-            subjectAttendance.forEach(record => {
+            const attendanceSessions = subjectAttendance.map(record => {
                 const attendanceRecords = record.records || record.attendance || {};
                 const totalStudents = Object.keys(attendanceRecords).length;
                 const presentStudents = Object.values(attendanceRecords).filter(status => status === 'present').length;
                 const absentStudents = totalStudents - presentStudents;
                 const percentage = totalStudents > 0 ? ((presentStudents / totalStudents) * 100).toFixed(1) : '0.0';
 
-                const absentList = [];
-                Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
-                    if (status === 'absent') {
-                        const student = students.find(s => s.roll === rollNumber);
-                        absentList.push(`${rollNumber} - ${student ? student.name : 'Unknown'}`);
-                    }
-                });
-
-                csvRows.push([
-                    subjectName,
-                    record.date,
-                    record.lectureNumber || 1,
+                return {
+                    record,
+                    attendanceRecords,
                     totalStudents,
                     presentStudents,
                     absentStudents,
                     percentage,
-                    absentList.join('; ')
-                ]);
+                    header: {
+                        date: record.date,
+                        lecture: record.lectureNumber || 1,
+                        subject: subjectName
+                    }
+                };
             });
 
-            const escapeCsv = (value) => {
-                const str = String(value ?? '');
-                if (str.includes('"') || str.includes(',') || str.includes('\n')) {
-                    return '"' + str.replace(/"/g, '""') + '"';
+            const rollMap = new Map();
+            students.forEach(student => {
+                if (student && student.roll) {
+                    rollMap.set(String(student.roll), student.name || '');
                 }
-                return str;
-            };
+            });
+
+            const parsedRolls = Array.from(rollMap.keys())
+                .map(parseRoll)
+                .filter(Boolean)
+                .sort((a, b) => a.number - b.number);
+
+            let rosterRows = Array.from(rollMap.entries()).map(([roll, name]) => ({
+                roll,
+                name,
+                notFound: false
+            }));
+
+            if (parsedRolls.length > 0) {
+                const firstTemplate = parsedRolls[0];
+                const uniformTemplate = parsedRolls.every(item => item.prefix === firstTemplate.prefix && item.suffix === firstTemplate.suffix);
+
+                if (uniformTemplate) {
+                    const existingRolls = new Set(rosterRows.map(row => row.roll));
+                    const minRoll = parsedRolls[0].number;
+                    const maxRoll = parsedRolls[parsedRolls.length - 1].number;
+
+                    for (let number = minRoll; number <= maxRoll; number++) {
+                        const generatedRoll = formatRoll(firstTemplate, number);
+                        if (!existingRolls.has(generatedRoll)) {
+                            rosterRows.push({
+                                roll: generatedRoll,
+                                name: 'Not Found',
+                                notFound: true
+                            });
+                        }
+                    }
+                }
+            }
+
+            rosterRows.sort((a, b) => {
+                const parsedA = parseRoll(a.roll);
+                const parsedB = parseRoll(b.roll);
+
+                if (parsedA && parsedB && parsedA.prefix === parsedB.prefix && parsedA.suffix === parsedB.suffix) {
+                    return parsedA.number - parsedB.number;
+                }
+
+                return a.roll.localeCompare(b.roll);
+            });
+
+            const csvRows = [];
+            const headerRow = ['Roll Number', 'Name'];
+            const lectureRow = ['', ''];
+            const subjectRow = ['', ''];
+
+            attendanceSessions.forEach(session => {
+                const lectureLabel = session.header.lecture ? `${session.header.lecture}${getOrdinalSuffix(session.header.lecture)} Lecture` : 'Lecture';
+                headerRow.push(session.header.date);
+                lectureRow.push(lectureLabel);
+                subjectRow.push(session.header.subject);
+            });
+
+            headerRow.push('Absentees Count');
+            lectureRow.push('');
+            subjectRow.push('');
+
+            csvRows.push(headerRow, lectureRow, subjectRow);
+
+            rosterRows.forEach(row => {
+                let absenteeCount = 0;
+                const csvRow = [row.roll, row.name];
+
+                attendanceSessions.forEach(session => {
+                    let status = 'Not Found';
+
+                    if (!row.notFound && Object.prototype.hasOwnProperty.call(session.attendanceRecords, row.roll)) {
+                        status = session.attendanceRecords[row.roll] === 'present' ? 'P' : 'A';
+                        if (status === 'A') {
+                            absenteeCount += 1;
+                        }
+                    }
+
+                    csvRow.push(status);
+                });
+
+                csvRow.push(row.notFound ? '0' : String(absenteeCount));
+                csvRows.push(csvRow);
+            });
+
+            const totalPresentRow = ['Total Present', ''];
+            const totalAbsentRow = ['Total Absent', ''];
+
+            attendanceSessions.forEach(session => {
+                totalPresentRow.push(String(session.presentStudents));
+                totalAbsentRow.push(String(session.absentStudents));
+            });
+
+            totalPresentRow.push('');
+            totalAbsentRow.push('');
+
+            csvRows.push(totalPresentRow, totalAbsentRow);
 
             const csvContent = csvRows
                 .map(row => row.map(escapeCsv).join(','))
