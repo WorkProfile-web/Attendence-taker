@@ -1093,6 +1093,11 @@ async function loadGroups(selectId, includeAllOption = true) {
         option.textContent = group.name;
         select.appendChild(option);
     });
+
+    // Refresh the custom dropdown widget if initialized
+    if (typeof refreshCustomDropdown === 'function') {
+        refreshCustomDropdown(selectId);
+    }
 }
 
 function getStudentGroupsMarkup(studentGroups, allGroups) {

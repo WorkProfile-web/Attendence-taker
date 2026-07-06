@@ -1395,6 +1395,137 @@ async function exportSubjectWiseCSV() {
 }
 
 // ===================================================================
+// 📋 CUSTOM SROLLABLE DROPDOWN
+// ===================================================================
+function initCustomDropdown(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select || select.dataset.customDropdown === 'true') return;
+    select.dataset.customDropdown = 'true';
+
+    const container = document.createElement('div');
+    container.className = 'custom-select-container';
+
+    const trigger = document.createElement('button');
+    trigger.className = 'custom-select-trigger';
+    trigger.type = 'button';
+    trigger.innerHTML = '<span class="custom-select-value"></span><span class="custom-select-arrow">&#9660;</span>';
+
+    const optionsDiv = document.createElement('div');
+    optionsDiv.className = 'custom-select-options';
+
+    select.parentNode.insertBefore(container, select);
+    container.appendChild(select);
+    container.appendChild(trigger);
+    container.appendChild(optionsDiv);
+
+    function renderOptions() {
+        optionsDiv.innerHTML = '';
+        const selectedIdx = select.selectedIndex;
+        Array.from(select.options).forEach((opt, i) => {
+            const div = document.createElement('div');
+            div.className = 'custom-select-option';
+            div.dataset.value = opt.value;
+            div.textContent = opt.textContent;
+            if (i === selectedIdx && opt.value === select.value) {
+                div.classList.add('selected');
+            }
+            div.addEventListener('click', function () {
+                select.value = this.dataset.value;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                closeDropdown();
+            });
+            optionsDiv.appendChild(div);
+        });
+        updateTrigger();
+    }
+
+    function updateTrigger() {
+        const selectedOpt = select.options[select.selectedIndex];
+        trigger.querySelector('.custom-select-value').textContent = selectedOpt ? selectedOpt.textContent : 'Select...';
+    }
+
+    function closeDropdown() {
+        optionsDiv.classList.remove('open');
+        trigger.querySelector('.custom-select-arrow').classList.remove('open');
+    }
+
+    container.addEventListener('click', function (e) {
+        e.stopPropagation();
+    });
+
+    trigger.addEventListener('click', function () {
+        const isOpen = optionsDiv.classList.contains('open');
+        // Close any other open custom dropdowns
+        document.querySelectorAll('.custom-select-options.open').forEach(d => {
+            if (d !== optionsDiv) {
+                d.classList.remove('open');
+                const parent = d.closest('.custom-select-container');
+                if (parent) {
+                    const arrow = parent.querySelector('.custom-select-arrow');
+                    if (arrow) arrow.classList.remove('open');
+                }
+            }
+        });
+        if (isOpen) {
+            closeDropdown();
+        } else {
+            renderOptions();
+            optionsDiv.classList.add('open');
+            trigger.querySelector('.custom-select-arrow').classList.add('open');
+        }
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!container.contains(e.target)) {
+            closeDropdown();
+        }
+    });
+
+    select.addEventListener('change', function () {
+        updateTrigger();
+        // Update selected class
+        optionsDiv.querySelectorAll('.custom-select-option').forEach(opt => {
+            opt.classList.toggle('selected', opt.dataset.value === select.value);
+        });
+    });
+
+    renderOptions();
+}
+
+// Refresh after loadGroups() populates options
+function refreshCustomDropdown(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select || select.dataset.customDropdown !== 'true') return;
+    const container = select.parentElement;
+    if (!container.classList.contains('custom-select-container')) return;
+    const optionsDiv = container.querySelector('.custom-select-options');
+    const trigger = container.querySelector('.custom-select-trigger');
+    if (!optionsDiv || !trigger) return;
+
+    // Re-render options
+    optionsDiv.innerHTML = '';
+    Array.from(select.options).forEach((opt, i) => {
+        const div = document.createElement('div');
+        div.className = 'custom-select-option';
+        div.dataset.value = opt.value;
+        div.textContent = opt.textContent;
+        if (i === select.selectedIndex && opt.value === select.value) {
+            div.classList.add('selected');
+        }
+        div.addEventListener('click', function () {
+            select.value = this.dataset.value;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            optionsDiv.classList.remove('open');
+            trigger.querySelector('.custom-select-arrow').classList.remove('open');
+        });
+        optionsDiv.appendChild(div);
+    });
+
+    const selectedOpt = select.options[select.selectedIndex];
+    trigger.querySelector('.custom-select-value').textContent = selectedOpt ? selectedOpt.textContent : 'Select...';
+}
+
+// ===================================================================
 // 🚀 INITIALIZATION
 // ===================================================================
 document.addEventListener('DOMContentLoaded', async function () {
@@ -1460,6 +1591,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('subject-name').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') addSubject();
     });
+
+    // Initialize custom scrollable dropdowns for group filters
+    ['attendance-group-filter', 'track-group-filter', 'analytics-group-filter',
+     'student-wise-group-filter', 'roll-search-group-filter', 'bulk-group-select'
+    ].forEach(id => initCustomDropdown(id));
 
     // Restore manage section expand/collapse state
     restoreSectionStates();
