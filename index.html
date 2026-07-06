@@ -1024,6 +1024,21 @@
             font-weight: 600;
         }
 
+        /* Scrollable student list inside group assignment */
+        #student-group-assignment {
+            max-height: 360px;
+            overflow-y: auto;
+        }
+
+        #student-group-assignment::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #student-group-assignment::-webkit-scrollbar-thumb {
+            background: var(--divider-color);
+            border-radius: 3px;
+        }
+
         /* Defaulters search and sort */
             .defaulters-controls {
                 flex-direction: column;
