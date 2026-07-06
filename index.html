@@ -1370,6 +1370,26 @@
                 <!-- Groups will be loaded here -->
             </div>
 
+            <h4 style="margin: 20px 0 15px 0; color: var(--text-primary);">📥 Bulk Add to Group</h4>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">
+                Paste roll numbers (comma, space, or newline separated) to add them all to a group at once.
+            </p>
+            <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 12px;">
+                <div style="flex: 1;">
+                    <label for="bulk-group-select" style="font-size: 12px;">Select Group:</label>
+                    <select id="bulk-group-select" style="font-size: 14px;">
+                        <option value="">Choose a group...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <textarea id="bulk-group-rolls" rows="4"
+                    placeholder="Paste roll numbers here...&#10;e.g.: 2021-CS-001, 2021-CS-002, 2021-CS-003&#10;&#10;Or space/newline separated: 001 002 003"></textarea>
+            </div>
+            <button class="btn btn-success btn-block" onclick="bulkAddToGroup()">
+                📥 Add All to Group
+            </button>
+
             <h4 style="margin: 20px 0 15px 0; color: var(--text-primary);">👥 Assign Students to Groups</h4>
             <div id="student-group-assignment" class="student-list">
                 <!-- Student group assignment will be loaded here -->

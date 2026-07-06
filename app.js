@@ -119,6 +119,7 @@ async function switchTab(tabName) {
         await showGroupManagement();
         await showStudentGroupAssignment();
         await loadGroups('attendance-group-filter');
+        await loadGroups('bulk-group-select', false);
     }
 }
 
@@ -342,6 +343,84 @@ async function assignGroupToStudent(studentRoll, groupId) {
         await setStudents(students);
     }
 
+    showStudentGroupAssignment();
+}
+
+async function bulkAddToGroup() {
+    const groupId = document.getElementById('bulk-group-select').value;
+    const input = document.getElementById('bulk-group-rolls').value.trim();
+    const messageDiv = document.getElementById('manage-message');
+
+    if (!groupId) {
+        showMessage(messageDiv, '⚠️ Please select a group first', 'error');
+        return;
+    }
+
+    if (!input) {
+        showMessage(messageDiv, '⚠️ Please enter roll numbers', 'error');
+        return;
+    }
+
+    // Parse roll numbers: split by comma, space, tab, or newline, then trim and remove empties
+    const rawRolls = input.split(/[,\s\n\t]+/).map(r => r.trim()).filter(Boolean);
+
+    if (rawRolls.length === 0) {
+        showMessage(messageDiv, '⚠️ No valid roll numbers found', 'error');
+        return;
+    }
+
+    const groups = await getGroups();
+    const selectedGroup = groups.find(g => g.id === groupId);
+    if (!selectedGroup) {
+        showMessage(messageDiv, '⚠️ Selected group not found', 'error');
+        return;
+    }
+
+    const students = await getStudents();
+    let addedCount = 0;
+    let notFound = [];
+    let alreadyInGroup = [];
+
+    rawRolls.forEach(roll => {
+        const student = students.find(s => s.roll.toLowerCase() === roll.toLowerCase());
+        if (!student) {
+            notFound.push(roll);
+            return;
+        }
+
+        if (!student.groups) {
+            student.groups = [];
+        }
+
+        if (student.groups.includes(groupId)) {
+            alreadyInGroup.push(roll);
+            return;
+        }
+
+        student.groups.push(groupId);
+        addedCount++;
+    });
+
+    if (addedCount > 0) {
+        await setStudents(students);
+    }
+
+    // Build result message
+    let message = `✅ ${addedCount} of ${rawRolls.length} added to "${selectedGroup.name}"`;
+
+    if (alreadyInGroup.length > 0) {
+        message += `. ${alreadyInGroup.length} already in group`;
+    }
+
+    if (notFound.length > 0) {
+        const showRolls = notFound.slice(0, 3).join(', ');
+        message += `. ${notFound.length} not found${notFound.length > 3 ? ' (e.g. ' + showRolls + '...)' : ' (' + showRolls + ')'}`;
+    }
+
+    showMessage(messageDiv, message, addedCount > 0 ? 'success' : 'error');
+
+    // Refresh UI
+    document.getElementById('bulk-group-rolls').value = '';
     showStudentGroupAssignment();
 }
 
