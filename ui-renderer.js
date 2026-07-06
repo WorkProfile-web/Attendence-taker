@@ -1199,7 +1199,7 @@ async function showStudentGroupAssignment() {
     if (totalStudents > ASSIGNMENT_PAGE_SIZE) {
         const remaining = totalStudents - showing;
         html += `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; margin-top: 8px; border-top: 1px solid var(--divider-color);">
+            <div class="assignment-pagination-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; margin-top: 8px; border-top: 1px solid var(--divider-color);">
                 <span style="font-size: 12px; color: var(--text-secondary);">Showing ${showing} of ${totalStudents} students</span>
                 ${remaining > 0 ? `<button class="btn" onclick="loadMoreAssignments()" style="font-size: 12px; padding: 6px 14px;">📥 Show More (${remaining} left)</button>` : ''}
             </div>
@@ -1236,6 +1236,16 @@ function filterStudentAssignment() {
         item.style.display = matches ? 'flex' : 'none';
         if (matches) visibleCount++;
     });
+
+    // Update pagination footer with filtered count when search is active
+    const footer = container.querySelector('.assignment-pagination-footer');
+    if (footer) {
+        const countSpan = footer.querySelector('span');
+        if (countSpan && query) {
+            const totalItems = items.length;
+            countSpan.textContent = `Showing ${visibleCount} of ${totalItems} students (filtered)`;
+        }
+    }
 
     // Show/hide no-results message
     let noResults = container.querySelector('.no-filter-results');
