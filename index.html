@@ -570,6 +570,54 @@
             display: none !important;
         }
 
+        .collapsible-section {
+            margin-bottom: 10px;
+            border: 1px solid var(--divider-color);
+            border-radius: var(--border-radius-small);
+            overflow: hidden;
+            background: var(--surface-color);
+        }
+
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            cursor: pointer;
+            background: var(--surface-dark);
+            transition: var(--transition);
+            user-select: none;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+
+        .collapsible-header:hover {
+            background: var(--primary-light);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease, padding 0.35s ease;
+            padding: 0 16px;
+        }
+
+        .collapsible-content.expanded {
+            max-height: 6000px;
+            padding: 16px;
+        }
+
+        .chevron {
+            transition: transform 0.3s ease;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .chevron.rotated {
+            transform: rotate(180deg);
+        }
+
         .progress-bar {
             width: 100%;
             height: 8px;
@@ -1310,180 +1358,216 @@
         <div class="tab-content" id="manage">
             <h3 style="margin-bottom: 15px; color: var(--text-primary);">⚙️ Manage Data</h3>
 
-            <!-- Helpful instruction for mobile users -->
-            <div
-                style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 12px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--primary-color);">
-                <div style="font-weight: bold; color: var(--primary-dark); margin-bottom: 5px;">📱 Quick Start Guide
+            <!-- Section: Getting Started + Storage -->
+            <div class="collapsible-section">
+                <div class="collapsible-header" onclick="toggleSection('sec-getting-started')">
+                    <span>📱 Getting Started & Storage</span>
+                    <span class="chevron">▼</span>
                 </div>
-                <div style="font-size: 13px; color: #1565c0;">
-                    <div style="margin-bottom: 4px;">1️⃣ Add your students with their roll numbers</div>
-                    <div style="margin-bottom: 4px;">2️⃣ Add your subjects (scroll down)</div>
-                    <div>3️⃣ Go to "Take" tab to mark attendance</div>
-                </div>
-            </div>
+                <div class="collapsible-content" id="sec-getting-started">
+                    <div style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 12px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--primary-color);">
+                        <div style="font-weight: bold; color: var(--primary-dark); margin-bottom: 5px;">📱 Quick Start Guide</div>
+                        <div style="font-size: 13px; color: #1565c0;">
+                            <div style="margin-bottom: 4px;">1️⃣ Add your students with their roll numbers</div>
+                            <div style="margin-bottom: 4px;">2️⃣ Add your subjects (scroll down)</div>
+                            <div>3️⃣ Go to "Take" tab to mark attendance</div>
+                        </div>
+                    </div>
 
-            <!-- Storage Mode Toggle -->
-            <div style="background: linear-gradient(135deg, #fff3e0, #ffe0b2); padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ff9800;">
-                <h4 style="color: #e65100; margin: 0 0 10px 0;">🔐 Storage Configuration</h4>
-                <div style="font-size: 13px; color: #e65100; margin-bottom: 10px;">
-                    Choose your storage method. Firebase provides cloud sync across devices, while localStorage keeps data on this device only.
-                </div>
-                <div style="background: #fff; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 3px solid #ff9800;">
-                    <strong style="color: #e65100;">🔑 To login for Firebase:</strong>
-                    <div style="font-size: 12px; color: #424242; margin-top: 5px;">Select "☁️ Firebase Cloud" below and enter your email & password when prompted.</div>
-                </div>
-                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 12px; background: white; border-radius: 6px; flex: 1;">
-                        <input type="radio" name="storage-mode" value="localStorage" onchange="switchStorageMode('localStorage')" style="width: auto;">
-                        <span style="font-weight: bold;">💾 Local Storage</span>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 12px; background: white; border-radius: 6px; flex: 1;">
-                        <input type="radio" name="storage-mode" value="firebase" onchange="showFirebaseAuthPrompt()" style="width: auto;">
-                        <span style="font-weight: bold;">☁️ Firebase Cloud</span>
-                    </label>
-                </div>
-                <div id="storage-status" style="padding: 8px; background: white; border-radius: 6px; font-size: 13px; text-align: center; font-weight: bold;">
-                    Current: <span id="current-storage-mode"></span>
-                </div>
-            </div>
-
-            <h3 style="margin: 30px 0 20px 0; color: var(--text-primary);">👥 Manage Groups</h3>
-            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">
-                💡 Create groups (e.g. Section A, Lab Group 1) and assign students to them. Filter by group when taking attendance or viewing reports.
-            </p>
-
-            <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px;">
-                <div style="flex: 1;">
-                    <label for="group-name" style="font-size: 12px;">Group Name:</label>
-                    <input type="text" id="group-name" placeholder="e.g., Section A" style="font-size: 14px;">
-                </div>
-                <div style="width: 70px;">
-                    <label for="group-color" style="font-size: 12px;">Color:</label>
-                    <input type="color" id="group-color" value="#2196F3" style="height: 38px; padding: 2px;">
-                </div>
-                <button class="btn btn-success" onclick="addGroup()" style="white-space: nowrap; padding: 8px 16px; height: 38px;">
-                    ➕ Add Group
-                </button>
-            </div>
-
-            <div id="group-list" class="student-list">
-                <!-- Groups will be loaded here -->
-            </div>
-
-            <h4 style="margin: 20px 0 15px 0; color: var(--text-primary);">📥 Bulk Add to Group</h4>
-            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">
-                Paste roll numbers (comma, space, or newline separated) to add them all to a group at once.
-            </p>
-            <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 12px;">
-                <div style="flex: 1;">
-                    <label for="bulk-group-select" style="font-size: 12px;">Select Group:</label>
-                    <select id="bulk-group-select" style="font-size: 14px;">
-                        <option value="">Choose a group...</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <textarea id="bulk-group-rolls" rows="4"
-                    placeholder="Paste roll numbers here...&#10;e.g.: 2021-CS-001, 2021-CS-002, 2021-CS-003&#10;&#10;Or space/newline separated: 001 002 003"></textarea>
-            </div>
-            <button class="btn btn-success btn-block" onclick="bulkAddToGroup()">
-                📥 Add All to Group
-            </button>
-
-            <h4 style="margin: 20px 0 15px 0; color: var(--text-primary);">👥 Assign Students to Groups</h4>
-            <div id="student-group-assignment" class="student-list">
-                <!-- Student group assignment will be loaded here -->
-            </div>
-
-            <h3 style="margin-bottom: 20px; color: var(--text-primary);">👥 Manage Students</h3>
-
-            <div class="form-group">
-                <label for="student-name">Student Name:</label>
-                <input type="text" id="student-name" placeholder="Enter student name">
-            </div>
-
-            <div class="form-group">
-                <label for="student-roll">Roll Number:</label>
-                <input type="text" id="student-roll" placeholder="Enter roll number">
-            </div>
-
-            <button class="btn btn-success btn-block" onclick="addStudent()">
-                ➕ Add Student
-            </button>
-
-            <h4 style="margin: 20px 0 15px 0; color: var(--text-primary);">� Manage Enrollments</h4>
-            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">
-                💡 <strong>By default, ALL students are enrolled in ALL subjects.</strong> Use this section to drop specific students from specific subjects (e.g., electives, special cases).
-            </p>
-            <div class="form-group">
-                <label for="enrollment-subject">Select Subject:</label>
-                <select id="enrollment-subject" onchange="loadEnrollments()">
-                    <option value="">Choose a subject...</option>
-                </select>
-            </div>
-            <div id="enrollment-management" class="student-list" style="display: none;">
-                <!-- Enrollment management will be loaded here -->
-            </div>
-
-            <h4 style="margin: 20px 0 15px 0; color: var(--text-primary);">�📄 Bulk Import Students</h4>
-            <div class="form-group">
-                <label for="bulk-import-text">Paste Excel data (Roll Number, Name):</label>
-                <textarea id="bulk-import-text" rows="6"
-                    placeholder="Example:&#10;2021-CS-001, John Doe&#10;2021-CS-002, Jane Smith&#10;2021-CS-003, Mike Johnson&#10;&#10;Or tab-separated from Excel copy-paste"></textarea>
-            </div>
-            <button class="btn btn-secondary btn-block" onclick="bulkImportStudents()">
-                📋 Import Students from Text
-            </button>
-
-            <h3 style="margin: 30px 0 20px 0; color: var(--text-primary);">📚 Manage Subjects</h3>
-
-            <div class="form-group">
-                <label for="subject-name">Subject Name:</label>
-                <input type="text" id="subject-name" placeholder="Enter subject name">
-            </div>
-
-            <button class="btn btn-success btn-block" onclick="addSubject()">
-                ➕ Add Subject
-            </button>
-
-            <div id="current-students" class="student-list">
-                <!-- Current students will be loaded here -->
-            </div>
-
-            <div id="current-subjects" class="student-list">
-                <!-- Current subjects will be loaded here -->
-            </div>
-
-            <h3 style="margin: 30px 0 20px 0; color: var(--text-primary);">💾 Backup & Import</h3>
-            
-            <div style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary-color);">
-                <div style="font-weight: bold; color: var(--primary-dark); margin-bottom: 5px;">📂 Import Your Backup</div>
-                <div style="font-size: 13px; color: #1565c0;">
-                    Click "Import Data" below to restore from your .json backup file. All data will be uploaded to Firebase cloud.
+                    <div style="background: linear-gradient(135deg, #fff3e0, #ffe0b2); padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #ff9800;">
+                        <h4 style="color: #e65100; margin: 0 0 10px 0;">🔐 Storage Configuration</h4>
+                        <div style="font-size: 13px; color: #e65100; margin-bottom: 10px;">
+                            Choose your storage method. Firebase provides cloud sync across devices, while localStorage keeps data on this device only.
+                        </div>
+                        <div style="background: #fff; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 3px solid #ff9800;">
+                            <strong style="color: #e65100;">🔑 To login for Firebase:</strong>
+                            <div style="font-size: 12px; color: #424242; margin-top: 5px;">Select "☁️ Firebase Cloud" below and enter your email & password when prompted.</div>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 12px; background: white; border-radius: 6px; flex: 1;">
+                                <input type="radio" name="storage-mode" value="localStorage" onchange="switchStorageMode('localStorage')" style="width: auto;">
+                                <span style="font-weight: bold;">💾 Local Storage</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 12px; background: white; border-radius: 6px; flex: 1;">
+                                <input type="radio" name="storage-mode" value="firebase" onchange="showFirebaseAuthPrompt()" style="width: auto;">
+                                <span style="font-weight: bold;">☁️ Firebase Cloud</span>
+                            </label>
+                        </div>
+                        <div id="storage-status" style="padding: 8px; background: white; border-radius: 6px; font-size: 13px; text-align: center; font-weight: bold;">
+                            Current: <span id="current-storage-mode"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="export-options">
-                <button class="btn btn-secondary" onclick="exportData()">
-                    💾 Export Backup
-                </button>
-                <button class="btn btn-success" onclick="importData()" style="position: relative;">
-                    📁 Import Backup
-                </button>
+            <!-- Section: Groups -->
+            <div class="collapsible-section">
+                <div class="collapsible-header" onclick="toggleSection('sec-groups')">
+                    <span>👥 Groups</span>
+                    <span class="chevron">▼</span>
+                </div>
+                <div class="collapsible-content" id="sec-groups">
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">
+                        💡 Create groups (e.g. Section A, Lab Group 1) and assign students to them. Filter by group when taking attendance or viewing reports.
+                    </p>
+
+                    <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <label for="group-name" style="font-size: 12px;">Group Name:</label>
+                            <input type="text" id="group-name" placeholder="e.g., Section A" style="font-size: 14px;">
+                        </div>
+                        <div style="width: 70px;">
+                            <label for="group-color" style="font-size: 12px;">Color:</label>
+                            <input type="color" id="group-color" value="#2196F3" style="height: 38px; padding: 2px;">
+                        </div>
+                        <button class="btn btn-success" onclick="addGroup()" style="white-space: nowrap; padding: 8px 16px; height: 38px;">
+                            ➕ Add Group
+                        </button>
+                    </div>
+
+                    <div id="group-list" class="student-list">
+                        <!-- Groups will be loaded here -->
+                    </div>
+
+                    <h4 style="margin: 20px 0 15px 0; color: var(--text-primary);">📥 Bulk Add to Group</h4>
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">
+                        Paste roll numbers (comma, space, or newline separated) to add them all to a group at once.
+                    </p>
+                    <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 12px;">
+                        <div style="flex: 1;">
+                            <label for="bulk-group-select" style="font-size: 12px;">Select Group:</label>
+                            <select id="bulk-group-select" style="font-size: 14px;">
+                                <option value="">Choose a group...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <textarea id="bulk-group-rolls" rows="4"
+                            placeholder="Paste roll numbers here...&#10;e.g.: 2021-CS-001, 2021-CS-002, 2021-CS-003&#10;&#10;Or space/newline separated: 001 002 003"></textarea>
+                    </div>
+                    <button class="btn btn-success btn-block" onclick="bulkAddToGroup()">
+                        📥 Add All to Group
+                    </button>
+
+                    <h4 style="margin: 20px 0 15px 0; color: var(--text-primary);">👥 Assign Students to Groups</h4>
+                    <div id="student-group-assignment" class="student-list">
+                        <!-- Student group assignment will be loaded here -->
+                    </div>
+                </div>
             </div>
-            <input type="file" id="import-file" accept=".json" style="display: none;"
-                onchange="handleFileImport(event)">
 
-            <h3 style="margin: 30px 0 20px 0; color: var(--text-primary);">🔄 Auto-Backups</h3>
-            <div id="auto-backup-list" style="margin-bottom: 20px;"></div>
+            <!-- Section: Students -->
+            <div class="collapsible-section">
+                <div class="collapsible-header" onclick="toggleSection('sec-students')">
+                    <span>👤 Students</span>
+                    <span class="chevron">▼</span>
+                </div>
+                <div class="collapsible-content" id="sec-students">
+                    <div class="form-group">
+                        <label for="student-name">Student Name:</label>
+                        <input type="text" id="student-name" placeholder="Enter student name">
+                    </div>
+                    <div class="form-group">
+                        <label for="student-roll">Roll Number:</label>
+                        <input type="text" id="student-roll" placeholder="Enter roll number">
+                    </div>
+                    <button class="btn btn-success btn-block" onclick="addStudent()">
+                        ➕ Add Student
+                    </button>
+                    <div id="current-students" class="student-list" style="margin-top: 15px;">
+                        <!-- Current students will be loaded here -->
+                    </div>
 
-            <div class="danger-zone">
-                <h3>⚠️ Danger Zone</h3>
-                <button class="btn btn-danger" onclick="clearAllAttendance()">Clear All Attendance</button>
-                <button class="btn btn-danger" onclick="clearAllStudents()">Clear All Students</button>
-                <button class="btn btn-danger" onclick="clearAllSubjects()">Clear All Subjects</button>
-                <div style="margin-top: 10px; font-size: 0.9em; color: var(--text-secondary);">
-                    ⚠️ Warning: These actions cannot be undone. Export data first if needed.
+                    <h4 style="margin: 20px 0 15px 0; color: var(--text-primary);">📄 Bulk Import Students</h4>
+                    <div class="form-group">
+                        <label for="bulk-import-text">Paste Excel data (Roll Number, Name):</label>
+                        <textarea id="bulk-import-text" rows="6"
+                            placeholder="Example:&#10;2021-CS-001, John Doe&#10;2021-CS-002, Jane Smith&#10;2021-CS-003, Mike Johnson&#10;&#10;Or tab-separated from Excel copy-paste"></textarea>
+                    </div>
+                    <button class="btn btn-secondary btn-block" onclick="bulkImportStudents()">
+                        📋 Import Students from Text
+                    </button>
+                </div>
+            </div>
+
+            <!-- Section: Subjects & Enrollments -->
+            <div class="collapsible-section">
+                <div class="collapsible-header" onclick="toggleSection('sec-subjects')">
+                    <span>📚 Subjects & Enrollments</span>
+                    <span class="chevron">▼</span>
+                </div>
+                <div class="collapsible-content" id="sec-subjects">
+                    <div class="form-group">
+                        <label for="subject-name">Subject Name:</label>
+                        <input type="text" id="subject-name" placeholder="Enter subject name">
+                    </div>
+                    <button class="btn btn-success btn-block" onclick="addSubject()">
+                        ➕ Add Subject
+                    </button>
+                    <div id="current-subjects" class="student-list" style="margin-top: 15px;">
+                        <!-- Current subjects will be loaded here -->
+                    </div>
+
+                    <h4 style="margin: 20px 0 15px 0; color: var(--text-primary);">🔗 Manage Enrollments</h4>
+                    <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">
+                        💡 <strong>By default, ALL students are enrolled in ALL subjects.</strong> Use this section to drop specific students from specific subjects (e.g., electives, special cases).
+                    </p>
+                    <div class="form-group">
+                        <label for="enrollment-subject">Select Subject:</label>
+                        <select id="enrollment-subject" onchange="loadEnrollments()">
+                            <option value="">Choose a subject...</option>
+                        </select>
+                    </div>
+                    <div id="enrollment-management" class="student-list" style="display: none;">
+                        <!-- Enrollment management will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Backup & Import -->
+            <div class="collapsible-section">
+                <div class="collapsible-header" onclick="toggleSection('sec-backup')">
+                    <span>💾 Backup & Import</span>
+                    <span class="chevron">▼</span>
+                </div>
+                <div class="collapsible-content" id="sec-backup">
+                    <div style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary-color);">
+                        <div style="font-weight: bold; color: var(--primary-dark); margin-bottom: 5px;">📂 Import Your Backup</div>
+                        <div style="font-size: 13px; color: #1565c0;">
+                            Click "Import Data" below to restore from your .json backup file. All data will be uploaded to Firebase cloud.
+                        </div>
+                    </div>
+                    <div class="export-options">
+                        <button class="btn btn-secondary" onclick="exportData()">
+                            💾 Export Backup
+                        </button>
+                        <button class="btn btn-success" onclick="importData()" style="position: relative;">
+                            📁 Import Backup
+                        </button>
+                    </div>
+                    <input type="file" id="import-file" accept=".json" style="display: none;"
+                        onchange="handleFileImport(event)">
+
+                    <h4 style="margin: 20px 0 15px 0; color: var(--text-primary);">🔄 Auto-Backups</h4>
+                    <div id="auto-backup-list" style="margin-bottom: 10px;"></div>
+                </div>
+            </div>
+
+            <!-- Section: Danger Zone -->
+            <div class="collapsible-section">
+                <div class="collapsible-header" onclick="toggleSection('sec-danger')" style="color: var(--error-color);">
+                    <span>⚠️ Danger Zone</span>
+                    <span class="chevron">▼</span>
+                </div>
+                <div class="collapsible-content" id="sec-danger">
+                    <div style="background: #ffeaea; border: 1px solid var(--error-color); border-radius: 6px; padding: 12px;">
+                        <button class="btn btn-danger btn-block" onclick="clearAllAttendance()">Clear All Attendance</button>
+                        <button class="btn btn-danger btn-block" onclick="clearAllStudents()">Clear All Students</button>
+                        <button class="btn btn-danger btn-block" onclick="clearAllSubjects()">Clear All Subjects</button>
+                        <div style="margin-top: 10px; font-size: 0.9em; color: var(--text-secondary);">
+                            ⚠️ Warning: These actions cannot be undone. Export data first if needed.
+                        </div>
+                    </div>
                 </div>
             </div>
 

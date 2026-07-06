@@ -79,6 +79,41 @@ async function undoLastAttendance() {
 }
 
 // ===================================================================
+// 📐 COLLAPSIBLE SECTIONS (Manage tab)
+// ===================================================================
+function toggleSection(sectionId) {
+    const content = document.getElementById(sectionId);
+    if (!content) return;
+    const header = content.previousElementSibling;
+    const chevron = header ? header.querySelector('.chevron') : null;
+
+    content.classList.toggle('expanded');
+    if (chevron) {
+        chevron.classList.toggle('rotated');
+    }
+
+    // Store expanded state
+    const expandedSections = JSON.parse(sessionStorage.getItem('manageExpanded') || '{}');
+    expandedSections[sectionId] = content.classList.contains('expanded');
+    sessionStorage.setItem('manageExpanded', JSON.stringify(expandedSections));
+}
+
+function restoreSectionStates() {
+    try {
+        const expandedSections = JSON.parse(sessionStorage.getItem('manageExpanded') || '{}');
+        Object.entries(expandedSections).forEach(([id, isExpanded]) => {
+            const content = document.getElementById(id);
+            if (content && isExpanded) {
+                content.classList.add('expanded');
+                const header = content.previousElementSibling;
+                const chevron = header ? header.querySelector('.chevron') : null;
+                if (chevron) chevron.classList.add('rotated');
+            }
+        });
+    } catch (e) { /* ignore */ }
+}
+
+// ===================================================================
 // 📐 TAB SWITCHING
 // ===================================================================
 async function switchTab(tabName) {
@@ -1425,6 +1460,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('subject-name').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') addSubject();
     });
+
+    // Restore manage section expand/collapse state
+    restoreSectionStates();
 
     // Initialize the app
     switchTab('attendance');
