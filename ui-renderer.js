@@ -1019,24 +1019,37 @@ async function generateRollSearchSummary() {
     summaryDiv.innerHTML = html;
 }
 
-async function loadCurrentStudents() {
-    const students = await getStudents();
+async function loadCurrentStudents(groupId) {
+    let students = await getStudents();
     const container = document.getElementById('current-students');
+    const groups = await getGroups();
+
+    let filterLabel = '';
+    if (groupId) {
+        const group = groups.find(g => g.id === groupId);
+        if (group) {
+            filterLabel = ` in <strong>${escapeHtml(group.name)}</strong>`;
+            students = students.filter(s => s.groups && s.groups.includes(groupId));
+        }
+    }
 
     if (students.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No students added yet.</p>';
+        const msg = groupId ? 'No students found in this group.' : 'No students added yet.';
+        container.innerHTML = `<p style="color: var(--text-secondary); text-align: center; padding: 20px;">${msg}</p>`;
         return;
     }
 
-    let html = '<h4 style="margin-bottom: 15px; color: var(--text-primary);">Current Students</h4>';
+    let html = `<h4 style="margin-bottom: 15px; color: var(--text-primary);">Current Students${filterLabel} (${students.length})</h4>`;
     students.forEach((student, index) => {
+        const studentGroups = (student.groups || []).map(gId => groups.find(g => g.id === gId)).filter(Boolean);
         html += `
             <div class="student-item">
                 <div class="student-info">
                     <div class="student-name">${escapeHtml(student.name)}</div>
                     <div class="student-roll">Roll: ${escapeHtml(student.roll)}</div>
+                    ${studentGroups.length > 0 ? `<div style="margin-top: 4px;">${studentGroups.map(g => `<span style="display: inline-block; background: ${g.color || '#2196F3'}; color: white; padding: 1px 6px; border-radius: 8px; font-size: 0.7em; margin: 1px 2px 0 0;">${escapeHtml(g.name)}</span>`).join('')}</div>` : ''}
                 </div>
-                <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8em;" onclick="removeStudent(${index})">
+                <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8em;" onclick="removeStudent('${escapeHtml(student.roll)}')">
                     🗑️ Remove
                 </button>
             </div>
@@ -1044,6 +1057,18 @@ async function loadCurrentStudents() {
     });
 
     container.innerHTML = html;
+}
+
+function filterStudentsByGroup() {
+    const select = document.getElementById('manage-group-filter');
+    if (!select) return;
+    loadCurrentStudents(select.value || null);
+}
+
+function clearGroupFilter() {
+    const select = document.getElementById('manage-group-filter');
+    if (select) select.value = '';
+    loadCurrentStudents();
 }
 
 async function loadCurrentSubjects() {

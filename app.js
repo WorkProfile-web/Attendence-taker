@@ -87,14 +87,58 @@ function toggleSection(sectionId) {
     const header = content.previousElementSibling;
     const chevron = header ? header.querySelector('.chevron') : null;
 
-    content.classList.toggle('expanded');
+    const isExpanding = !content.classList.contains('expanded');
+
+    // Clean up any pending transitionend listener to avoid race conditions
+    if (content._toggleEndHandler) {
+        content.removeEventListener('transitionend', content._toggleEndHandler);
+        content._toggleEndHandler = null;
+    }
+
+    if (isExpanding) {
+        // Calculate actual content height dynamically
+        content.style.maxHeight = 'none';
+        const scrollHeight = content.scrollHeight;
+        // Reset to 0 so the CSS transition animates open
+        content.style.maxHeight = '0px';
+        // Force reflow so the browser registers the 0px before we set the target
+        void content.offsetHeight;
+        // Now set to the real height — the CSS transition animates from 0 to this
+        content.style.maxHeight = scrollHeight + 'px';
+        content.classList.add('expanded');
+
+        // After expand animation completes, release max-height so dynamic content can grow
+        content._toggleEndHandler = function onExpandEnd(e) {
+            if (e.propertyName === 'max-height') {
+                content.style.maxHeight = 'none';
+                content.removeEventListener('transitionend', onExpandEnd);
+                content._toggleEndHandler = null;
+            }
+        };
+        content.addEventListener('transitionend', content._toggleEndHandler);
+    } else {
+        // Collapse: animate from scrollHeight down to 0
+        content.style.maxHeight = content.scrollHeight + 'px';
+        void content.offsetHeight;
+        content.style.maxHeight = '0px';
+        // Remove class after transition completes (only on max-height, not padding)
+        content._toggleEndHandler = function onCollapseEnd(e) {
+            if (e.propertyName === 'max-height') {
+                content.classList.remove('expanded');
+                content.removeEventListener('transitionend', onCollapseEnd);
+                content._toggleEndHandler = null;
+            }
+        };
+        content.addEventListener('transitionend', content._toggleEndHandler);
+    }
+
     if (chevron) {
         chevron.classList.toggle('rotated');
     }
 
     // Store expanded state
     const expandedSections = JSON.parse(sessionStorage.getItem('manageExpanded') || '{}');
-    expandedSections[sectionId] = content.classList.contains('expanded');
+    expandedSections[sectionId] = isExpanding;
     sessionStorage.setItem('manageExpanded', JSON.stringify(expandedSections));
 }
 
@@ -104,7 +148,16 @@ function restoreSectionStates() {
         Object.entries(expandedSections).forEach(([id, isExpanded]) => {
             const content = document.getElementById(id);
             if (content && isExpanded) {
+                // Set max-height without animation for initial restore
+                content.style.transition = 'none';
+                content.style.maxHeight = 'none';
+                const scrollHeight = content.scrollHeight;
+                content.style.maxHeight = scrollHeight + 'px';
                 content.classList.add('expanded');
+                // Re-enable transitions after a frame
+                requestAnimationFrame(() => {
+                    content.style.transition = '';
+                });
                 const header = content.previousElementSibling;
                 const chevron = header ? header.querySelector('.chevron') : null;
                 if (chevron) chevron.classList.add('rotated');
@@ -154,6 +207,7 @@ async function switchTab(tabName) {
         await showGroupManagement();
         await showStudentGroupAssignment();
         await loadGroups('attendance-group-filter');
+        await loadGroups('manage-group-filter');
         await loadGroups('bulk-group-select', false);
     }
 }
@@ -618,12 +672,15 @@ async function addSubject() {
     loadSubjects('enrollment-subject');
 }
 
-async function removeStudent(index) {
+async function removeStudent(roll) {
     if (confirm('Are you sure you want to remove this student?')) {
         const students = await getStudents();
-        students.splice(index, 1);
+        const idx = students.findIndex(s => s.roll === roll);
+        if (idx === -1) return;
+        students.splice(idx, 1);
         await setStudents(students);
-        loadCurrentStudents();
+        // Restore the current group filter state
+        filterStudentsByGroup();
         showMessage(document.getElementById('manage-message'), 'Student removed successfully', 'success');
     }
 }
@@ -1594,7 +1651,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Initialize custom scrollable dropdowns for group filters
     ['attendance-group-filter', 'track-group-filter', 'analytics-group-filter',
-     'student-wise-group-filter', 'roll-search-group-filter', 'bulk-group-select'
+     'student-wise-group-filter', 'roll-search-group-filter', 'bulk-group-select',
+     'manage-group-filter'
     ].forEach(id => initCustomDropdown(id));
 
     // Restore manage section expand/collapse state

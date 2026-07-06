@@ -603,7 +603,6 @@
         }
 
         .collapsible-content.expanded {
-            max-height: 6000px;
             overflow: visible;
             padding: 16px;
         }
@@ -919,8 +918,9 @@
                 flex-direction: column;
                 gap: 10px;
             }
+        }
 
-            /* Custom scrollable dropdown widget */
+        /* Custom scrollable dropdown widget */
         .custom-select-container {
             position: relative;
             width: 100%;
@@ -1045,7 +1045,8 @@
             border-radius: 3px;
         }
 
-        /* Defaulters search and sort */
+        @media (max-width: 480px) {
+            /* Defaulters search and sort */
             .defaulters-controls {
                 flex-direction: column;
                 gap: 10px;
@@ -1602,7 +1603,19 @@
                     <button class="btn btn-success btn-block" onclick="addStudent()">
                         ➕ Add Student
                     </button>
-                    <div id="current-students" class="student-list" style="margin-top: 15px;">
+
+                    <div style="display: flex; gap: 8px; align-items: center; margin: 15px 0 10px 0;">
+                        <select id="manage-group-filter" style="flex: 1; font-size: 12px; padding: 6px 8px;">
+                            <option value="">All Groups</option>
+                        </select>
+                        <button class="btn" onclick="filterStudentsByGroup()" style="white-space: nowrap; font-size: 12px; padding: 6px 12px;">
+                            👥 View by Group
+                        </button>
+                        <button class="btn" onclick="clearGroupFilter()" style="white-space: nowrap; font-size: 12px; padding: 6px 12px; background: var(--surface-dark); color: var(--text-primary);">
+                            ✕ Clear
+                        </button>
+                    </div>
+                    <div id="current-students" class="student-list" style="margin-top: 0;">
                         <!-- Current students will be loaded here -->
                     </div>
 
