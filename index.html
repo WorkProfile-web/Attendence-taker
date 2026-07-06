@@ -574,7 +574,6 @@
             margin-bottom: 10px;
             border: 1px solid var(--divider-color);
             border-radius: var(--border-radius-small);
-            overflow: hidden;
             background: var(--surface-color);
         }
 
@@ -605,6 +604,7 @@
 
         .collapsible-content.expanded {
             max-height: 6000px;
+            overflow: visible;
             padding: 16px;
         }
 
@@ -1024,17 +1024,23 @@
             font-weight: 600;
         }
 
-        /* Scrollable student list inside group assignment */
-        #student-group-assignment {
-            max-height: 360px;
+        /* Student lists inside collapsible sections */
+        #current-students,
+        #current-subjects,
+        #enrollment-management {
+            max-height: 480px;
             overflow-y: auto;
         }
 
-        #student-group-assignment::-webkit-scrollbar {
+        #current-students::-webkit-scrollbar,
+        #current-subjects::-webkit-scrollbar,
+        #enrollment-management::-webkit-scrollbar {
             width: 6px;
         }
 
-        #student-group-assignment::-webkit-scrollbar-thumb {
+        #current-students::-webkit-scrollbar-thumb,
+        #current-subjects::-webkit-scrollbar-thumb,
+        #enrollment-management::-webkit-scrollbar-thumb {
             background: var(--divider-color);
             border-radius: 3px;
         }
@@ -1568,7 +1574,10 @@
                         📥 Add All to Group
                     </button>
 
-                    <h4 style="margin: 20px 0 15px 0; color: var(--text-primary);">👥 Assign Students to Groups</h4>
+                    <h4 style="margin: 20px 0 10px 0; color: var(--text-primary);">👥 Assign Students to Groups</h4>
+                    <input type="text" id="student-group-search" placeholder="🔍 Filter students by name or roll number..."
+                        style="width: 100%; padding: 8px 12px; border: 1px solid var(--divider-color); border-radius: var(--border-radius-small); font-size: 13px; margin-bottom: 10px; background: var(--surface-color);"
+                        oninput="filterStudentAssignment()">
                     <div id="student-group-assignment" class="student-list">
                         <!-- Student group assignment will be loaded here -->
                     </div>

@@ -1140,6 +1140,8 @@ async function showGroupManagement() {
     container.innerHTML = html;
 }
 
+const ASSIGNMENT_PAGE_SIZE = 20;
+
 async function showStudentGroupAssignment() {
     const students = await getStudents();
     const groups = await getGroups();
@@ -1155,14 +1157,20 @@ async function showStudentGroupAssignment() {
         return;
     }
 
+    // Get or set pagination render limit
+    let renderLimit = parseInt(container.dataset.renderLimit) || ASSIGNMENT_PAGE_SIZE;
+    const totalStudents = students.length;
+    const showing = Math.min(renderLimit, totalStudents);
+
     let html = '';
-    students.forEach(student => {
+    const batch = students.slice(0, showing);
+    batch.forEach(student => {
         const studentGroupIds = student.groups || [];
         const assignedGroups = studentGroupIds.map(gId => groups.find(g => g.id === gId)).filter(Boolean);
         const availableGroups = groups.filter(g => !studentGroupIds.includes(g.id));
 
         html += `
-            <div class="student-item" style="flex-wrap: wrap;">
+            <div class="student-item" style="flex-wrap: wrap;" data-name="${escapeHtml(student.name).toLowerCase()}" data-roll="${escapeHtml(student.roll).toLowerCase()}">
                 <div class="student-info" style="min-width: 150px;">
                     <div class="student-name">${escapeHtml(student.name)}</div>
                     <div class="student-roll">${escapeHtml(student.roll)}</div>
@@ -1187,8 +1195,86 @@ async function showStudentGroupAssignment() {
         `;
     });
 
+    // Add pagination footer with count and Show More button
+    if (totalStudents > ASSIGNMENT_PAGE_SIZE) {
+        const remaining = totalStudents - showing;
+        html += `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; margin-top: 8px; border-top: 1px solid var(--divider-color);">
+                <span style="font-size: 12px; color: var(--text-secondary);">Showing ${showing} of ${totalStudents} students</span>
+                ${remaining > 0 ? `<button class="btn" onclick="loadMoreAssignments()" style="font-size: 12px; padding: 6px 14px;">📥 Show More (${remaining} left)</button>` : ''}
+            </div>
+        `;
+    }
+
     container.innerHTML = html;
+
+    // Re-apply search filter if there's an active query
+    filterStudentAssignment();
 }
+
+function loadMoreAssignments() {
+    const container = document.getElementById('student-group-assignment');
+    if (!container) return;
+    const currentLimit = parseInt(container.dataset.renderLimit) || ASSIGNMENT_PAGE_SIZE;
+    container.dataset.renderLimit = currentLimit + ASSIGNMENT_PAGE_SIZE;
+    showStudentGroupAssignment();
+}
+
+function filterStudentAssignment() {
+    const searchInput = document.getElementById('student-group-search');
+    const container = document.getElementById('student-group-assignment');
+    if (!searchInput || !container) return;
+
+    const query = searchInput.value.trim().toLowerCase();
+    const items = container.querySelectorAll('.student-item');
+    let visibleCount = 0;
+
+    items.forEach(item => {
+        const name = item.dataset.name || '';
+        const roll = item.dataset.roll || '';
+        const matches = !query || name.includes(query) || roll.includes(query);
+        item.style.display = matches ? 'flex' : 'none';
+        if (matches) visibleCount++;
+    });
+
+    // Show/hide no-results message
+    let noResults = container.querySelector('.no-filter-results');
+    if (visibleCount === 0 && items.length > 0) {
+        if (!noResults) {
+            noResults = document.createElement('p');
+            noResults.className = 'no-filter-results';
+            noResults.style.cssText = 'color: var(--text-secondary); text-align: center; padding: 20px;';
+            container.appendChild(noResults);
+        }
+        noResults.textContent = `No students matching "${searchInput.value}"`;
+        noResults.style.display = 'block';
+    } else if (noResults) {
+        noResults.style.display = 'none';
+    }
+}
+
+// Reset pagination only for new search input changes (manual typing)
+let _searchTimeout = null;
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('student-group-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            clearTimeout(_searchTimeout);
+            _searchTimeout = setTimeout(() => {
+                const container = document.getElementById('student-group-assignment');
+                if (container && this.value.trim()) {
+                    // When searching, lift pagination to show all matches
+                    container.dataset.renderLimit = '99999';
+                    showStudentGroupAssignment();
+                } else if (container && !this.value.trim()) {
+                    // When clearing search, reset pagination
+                    container.dataset.renderLimit = String(ASSIGNMENT_PAGE_SIZE);
+                    showStudentGroupAssignment();
+                }
+            }, 300);
+        });
+    }
+});
 
 async function loadEnrollments() {
     const subjectId = document.getElementById('enrollment-subject').value;
