@@ -769,131 +769,127 @@ async function clearAllSubjects() {
 }
 
 // ===================================================================
-// 📤 SHARE & EXPORT FUNCTIONS
+// ⏳ CANCELLATION HELPER
 // ===================================================================
-async function shareViaWhatsApp(summaryType) {
-    showLoading('📱 Preparing WhatsApp share...');
-    log.info('Export', 'WhatsApp share — type=' + summaryType);
-    let message = '';
-
-    if (summaryType === 'student-wise') {
-        const students = await getStudents();
-        const attendance = await getAttendance();
-
-        if (students.length === 0) {
-            hideLoading();
-            log.warn('Export', 'WhatsApp share cancelled: no students found');
-            alert('No students found to share.');
-            return;
-        }
-
-        const attendanceByStudent = {};
-        students.forEach(student => {
-            attendanceByStudent[student.roll] = {
-                name: student.name,
-                roll: student.roll,
-                subjects: {}
-            };
-        });
-
-        Object.values(attendance).forEach(record => {
-            const attendanceRecords = record.records || record.attendance || {};
-            Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
-                if (attendanceByStudent[rollNumber]) {
-                    const subjectName = record.subject || 'Unknown Subject';
-                    if (!attendanceByStudent[rollNumber].subjects[subjectName]) {
-                        attendanceByStudent[rollNumber].subjects[subjectName] = { present: 0, absent: 0 };
-                    }
-                    if (status === 'present') {
-                        attendanceByStudent[rollNumber].subjects[subjectName].present++;
-                    } else {
-                        attendanceByStudent[rollNumber].subjects[subjectName].absent++;
-                    }
-                }
-            });
-        });
-
-        message = `📊 *STUDENT WISE ATTENDANCE REPORT*\n`;
-        message += `📅 Generated: ${new Date().toLocaleDateString()}\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-
-        Object.values(attendanceByStudent).forEach(student => {
-            if (Object.keys(student.subjects).length === 0) return;
-
-            message += `👤 *${student.name}* (${student.roll})\n`;
-            Object.entries(student.subjects).forEach(([subjectName, subjectData]) => {
-                const total = subjectData.present + subjectData.absent;
-                const percentage = total > 0 ? ((subjectData.present / total) * 100).toFixed(1) : 0;
-                const emoji = percentage >= 75 ? '✅' : '⚠️';
-                message += `  ${emoji} ${subjectName}: ${percentage}% (${subjectData.present}/${total})\n`;
-            });
-            message += `\n`;
-        });
-
-    } else if (summaryType === 'subject-wise') {
-        const subjectId = document.getElementById('subject-wise-select').value;
-        if (!subjectId) {
-            hideLoading();
-            log.warn('Export', 'WhatsApp share cancelled: no subject selected');
-            alert('Please select a subject first.');
-            return;
-        }
-
-        const subjects = await getSubjects();
-        const selectedSubject = subjects.find(s => s.id == subjectId);
-        const subjectName = selectedSubject ? selectedSubject.name : 'Unknown Subject';
-        const attendance = await getAttendance();
-        const students = await getStudents();
-        const subjectAttendance = Object.values(attendance).filter(record => record.subjectId == subjectId);
-
-        if (subjectAttendance.length === 0) {
-            hideLoading();
-            log.warn('Export', 'WhatsApp share cancelled: no records for subject=' + subjectId);
-            alert('No attendance records found for this subject.');
-            return;
-        }
-
-        subjectAttendance.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        message = `📚 *SUBJECT WISE ATTENDANCE REPORT*\n`;
-        message += `Subject: *${subjectName}*\n`;
-        message += `📅 Generated: ${new Date().toLocaleDateString()}\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-
-        subjectAttendance.forEach(record => {
-            const attendanceRecords = record.records || record.attendance || {};
-            const totalStudents = Object.keys(attendanceRecords).length;
-            const presentStudents = Object.values(attendanceRecords).filter(status => status === 'present').length;
-            const percentage = totalStudents > 0 ? ((presentStudents / totalStudents) * 100).toFixed(1) : 0;
-            const lectureInfo = record.lectureNumber ? ` - Lecture ${record.lectureNumber}` : '';
-
-            message += `📅 *${new Date(record.date).toLocaleDateString()}*${lectureInfo}\n`;
-            message += `Attendance: ${percentage}% (${presentStudents}/${totalStudents})\n`;
-
-            const absentList = [];
-            Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
-                if (status === 'absent') {
-                    const student = students.find(s => s.roll === rollNumber);
-                    absentList.push(student ? student.name.split(' ')[0] : rollNumber);
-                }
-            });
-
-            if (absentList.length > 0) {
-                message += `Absent: ${absentList.join(', ')}\n`;
-            }
-            message += `\n`;
-        });
-    }        message += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
-    message += `Generated by Attendance Tracker 📱`;
-
-    hideLoading();
-    log.success('Export', 'WhatsApp share opened for ' + summaryType + ' (' + message.length + ' chars)');
-    const whatsappURL = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappURL, '_blank');
+// Yields to the event loop and checks the _loadingCancelled flag.
+// Call periodically inside long-running loops to allow the Cancel
+// button click to be processed.
+// Returns true if the operation should abort.
+// ===================================================================
+async function checkCancelled() {
+    if (window._loadingCancelled) return true;
+    // Yield to event loop so pending click events (like Cancel) can fire
+    await new Promise(function (r) { return setTimeout(r, 0); });
+    return !!window._loadingCancelled;
 }
 
+// ===================================================================
+// 📋 EXPORT PREVIEW MODAL
+// ===================================================================
+// Shows a confirmation dialog before an export with a table preview of the data.
+// Resolves with true if the user clicks Continue, false if they Cancel.
+//
+// Config:
+//   title         – Modal heading (e.g. "Student Wise PDF")
+//   subtitle      – Description line (e.g. "25 students · 3 subjects")
+//   stats         – Array of { label, value } for stat chips
+//   headers       – Array of column header strings
+//   rows          – Array of arrays (preview rows, will be capped to ~15)
+//   totalRows     – Total rows in full dataset
+//   confirmLabel  – Text for the confirm button (default 'Continue')
+//   confirmIcon   – Emoji/icon for confirm button (default '📄')
+//   onConfirm     – Async callback when user clicks Continue
+// ===================================================================
+function showExportPreview(config) {
+    return new Promise(function (resolve) {
+        var MAX_PREVIEW = 15;
+
+        // Remove any existing preview overlay
+        var existing = document.querySelector('.export-preview-overlay');
+        if (existing) existing.remove();
+
+        var overlay = document.createElement('div');
+        overlay.className = 'export-preview-overlay';
+
+        var previewRows = config.rows.slice(0, MAX_PREVIEW);
+        var hasMore = config.totalRows > MAX_PREVIEW;
+
+        overlay.innerHTML = '\n' +
+            '<div class="export-preview-card">\n' +
+            '  <div class="export-preview-header">\n' +
+            '    <h3>' + escapeHtml(config.title || 'Export Preview') + '</h3>\n' +
+            '    <div class="preview-subtitle">' + escapeHtml(config.subtitle || '') + '</div>\n' +
+            '  </div>\n' +
+            (config.stats && config.stats.length ? '\n' +
+            '  <div class="export-preview-stats">\n' +
+            config.stats.map(function (s) {
+                return '<span class="stat-chip">' + escapeHtml(s.value) + ' ' + escapeHtml(s.label) + '</span>';
+            }).join('') + '\n' +
+            '  </div>' : '') + '\n' +
+            '  <div class="export-preview-table-wrap">\n' +
+            '    <table>\n' +
+            '      <thead><tr>' + config.headers.map(function (h) {
+                return '<th>' + escapeHtml(h) + '</th>';
+            }).join('') + '</tr></thead>\n' +
+            '      <tbody>' + previewRows.map(function (row) {
+                return '<tr>' + row.map(function (cell) {
+                    return '<td>' + escapeHtml(String(cell)) + '</td>';
+                }).join('') + '</tr>';
+            }).join('') +
+            (hasMore ? '<tr class="preview-more-row"><td colspan="' + config.headers.length + '">… and ' + (config.totalRows - MAX_PREVIEW) + ' more rows</td></tr>' : '') + '\n' +
+            '      </tbody>\n' +
+            '    </table>\n' +
+            '  </div>\n' +
+            '  <div class="export-preview-actions">\n' +
+            '    <button class="btn btn-cancel" id="preview-cancel">✕ Cancel</button>\n' +
+            '    <button class="btn ' + (config.confirmClass || 'btn-success') + '" id="preview-confirm">' + (config.confirmIcon || '📄') + ' ' + (config.confirmLabel || 'Continue') + '</button>\n' +
+            '  </div>\n' +
+            '</div>';
+
+        document.body.appendChild(overlay);
+
+        var _closed = false;
+
+        function close() {
+            if (_closed) return;
+            _closed = true;
+            document.removeEventListener('keydown', onKeydown);
+            if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }
+
+        function onKeydown(e) {
+            if (e.key === 'Escape') {
+                close();
+                resolve(false);
+            }
+        }
+        document.addEventListener('keydown', onKeydown);
+
+        document.getElementById('preview-cancel').addEventListener('click', function () {
+            close();
+            resolve(false);
+        });
+
+        document.getElementById('preview-confirm').addEventListener('click', function () {
+            close();
+            resolve(true);
+        });
+
+        // Click outside card = cancel
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) {
+                close();
+                resolve(false);
+            }
+        });
+    });
+}
+
+// ===================================================================
+// 📤 EXPORT FUNCTIONS
+// ===================================================================
 async function exportStudentWisePDF() {
-    showLoading('📄 Generating Student Wise PDF...');
+    showLoading('📄 Generating Student Wise PDF...', true);
     log.info('Export', 'Student-wise PDF generation started');
 
     const students = await getStudents();
@@ -961,8 +957,59 @@ async function exportStudentWisePDF() {
         });
     });
 
-    Object.values(attendanceByStudent).forEach(student => {
-        if (Object.keys(student.subjects).length === 0) return;
+    // Build preview data
+    var previewStudents = Object.values(attendanceByStudent).filter(function (s) { return Object.keys(s.subjects).length > 0; });
+    var previewRows = [];
+    previewStudents.slice(0, 15).forEach(function (s) {
+        var subjectsList = Object.keys(s.subjects);
+        var totalPresent = 0, totalAbsent = 0;
+        subjectsList.forEach(function (subj) {
+            totalPresent += s.subjects[subj].present;
+            totalAbsent += s.subjects[subj].absent;
+        });
+        var total = totalPresent + totalAbsent;
+        var pct = total > 0 ? ((totalPresent / total) * 100).toFixed(1) + '%' : '-';
+        previewRows.push([s.roll, s.name, subjectsList.length + ' subject(s)', totalPresent, totalAbsent, total, pct]);
+    });
+
+    var subjectSet = {};
+    Object.values(attendance).forEach(function (r) {
+        var n = r.subject || 'Unknown';
+        subjectSet[n] = true;
+    });
+    var subjectCount = Object.keys(subjectSet).length;
+
+    var shouldExport = await showExportPreview({
+        title: 'Student Wise PDF',
+        subtitle: previewStudents.length + ' students \u00B7 ' + subjectCount + ' subjects',
+        stats: [
+            { label: 'Students', value: String(previewStudents.length) },
+            { label: 'Subjects', value: String(subjectCount) },
+            { label: 'Total Records', value: String(Object.keys(attendance).length) }
+        ],
+        headers: ['Roll', 'Name', 'Subjects', 'Present', 'Absent', 'Total', 'Avg'],
+        rows: previewRows,
+        totalRows: previewStudents.length,
+        confirmLabel: 'Export PDF',
+        confirmIcon: '\uD83D\uDCC4'
+    });
+    if (!shouldExport) {
+        log.info('Export', 'Student-wise PDF cancelled by user');
+        return;
+    }
+
+    showLoading('📄 Generating Student Wise PDF...', true);
+
+    var studentEntries = Object.values(attendanceByStudent);
+    for (var si = 0; si < studentEntries.length; si++) {
+        updateLoadingMessage('📄 Processing student ' + (si + 1) + ' of ' + studentEntries.length + '...');
+        if (await checkCancelled()) {
+            log.info('Export', 'Student-wise PDF cancelled by user during generation');
+            hideLoading();
+            return;
+        }
+        var student = studentEntries[si];
+        if (Object.keys(student.subjects).length === 0) continue;
 
         if (yPos > 250) {
             doc.addPage();
@@ -1015,7 +1062,13 @@ async function exportStudentWisePDF() {
         });
 
         yPos += 10;
-    });
+    }
+
+    if (await checkCancelled()) {
+        log.info('Export', 'Student-wise PDF cancelled by user before save');
+        hideLoading();
+        return;
+    }
 
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
@@ -1026,11 +1079,12 @@ async function exportStudentWisePDF() {
     }
 
     doc.save('Student_Wise_Attendance_Report.pdf');
+    hideLoading();
     log.success('Export', 'Student-wise PDF saved — ' + students.length + ' students');
 }
 
 async function exportSubjectWisePDF() {
-    showLoading('📄 Generating Subject Wise PDF...');
+    showLoading('📄 Generating Subject Wise PDF...', true);
     log.info('Export', 'Subject-wise PDF generation started');
     const subjectId = document.getElementById('subject-wise-select').value;
 
@@ -1086,7 +1140,54 @@ async function exportSubjectWisePDF() {
         return dateCompare;
     });
 
-    subjectAttendance.forEach(record => {
+    // Build preview data
+    var previewRows = [];
+    subjectAttendance.slice(0, 15).forEach(function (rec) {
+        var ar = rec.records || rec.attendance || {};
+        var total = Object.keys(ar).length;
+        var present = Object.values(ar).filter(function (s) { return s === 'present'; }).length;
+        var pct = total > 0 ? ((present / total) * 100).toFixed(1) + '%' : '-';
+        previewRows.push([
+            rec.date,
+            (rec.lectureNumber || 1) + (rec.lectureNumber ? getOrdinalSuffix(rec.lectureNumber) : 'th'),
+            String(present),
+            String(total - present),
+            String(total),
+            pct
+        ]);
+    });
+
+    var shouldExport = await showExportPreview({
+        title: 'Subject Wise PDF',
+        subtitle: subjectName + ' \u00B7 ' + subjectAttendance.length + ' sessions',
+        stats: [
+            { label: 'Sessions', value: String(subjectAttendance.length) },
+            { label: 'Students', value: String(students.length) },
+            { label: 'First Date', value: subjectAttendance.length ? subjectAttendance[0].date : '-' },
+            { label: 'Last Date', value: subjectAttendance.length ? subjectAttendance[subjectAttendance.length - 1].date : '-' }
+        ],
+        headers: ['Date', 'Lecture', 'Present', 'Absent', 'Total', 'Avg'],
+        rows: previewRows,
+        totalRows: subjectAttendance.length,
+        confirmLabel: 'Export PDF',
+        confirmIcon: '\uD83D\uDCC4'
+    });
+    if (!shouldExport) {
+        log.info('Export', 'Subject-wise PDF cancelled by user');
+        return;
+    }
+
+    showLoading('📄 Generating Subject Wise PDF...', true);
+
+    for (var ri = 0; ri < subjectAttendance.length; ri++) {
+        updateLoadingMessage('📄 Processing session ' + (ri + 1) + ' of ' + subjectAttendance.length + '...');
+        if (await checkCancelled()) {
+            log.info('Export', 'Subject-wise PDF cancelled by user during generation');
+            hideLoading();
+            return;
+        }
+        var record = subjectAttendance[ri];
+
         if (yPos > 250) {
             doc.addPage();
             yPos = 20;
@@ -1119,7 +1220,8 @@ async function exportSubjectWisePDF() {
         Object.entries(attendanceRecords).forEach(([rollNumber, status]) => {
             if (status === 'absent') {
                 const student = students.find(s => s.roll === rollNumber);
-                absentList.push(`${student ? student.name : 'Unknown'} (${rollNumber})`);
+                const name = student ? student.name : rollNumber;
+                absentList.push(`${name} (${rollNumber})`);
             }
         });
 
@@ -1147,7 +1249,13 @@ async function exportSubjectWisePDF() {
         }
 
         yPos += 15;
-    });
+    }
+
+    if (await checkCancelled()) {
+        log.info('Export', 'Subject-wise PDF cancelled by user before save');
+        hideLoading();
+        return;
+    }
 
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
@@ -1158,11 +1266,12 @@ async function exportSubjectWisePDF() {
     }
 
     doc.save('Subject_Wise_Attendance_Report.pdf');
+    hideLoading();
     log.success('Export', 'Subject-wise PDF saved — ' + subjectName + ' (' + subjectAttendance.length + ' records)');
 }
 
 async function exportRollSearchPDF() {
-    showLoading('📄 Generating Roll Search PDF...');
+    showLoading('📄 Generating Roll Search PDF...', true);
     log.info('Export', 'Roll-search PDF generation started');
     const searchTerm = document.getElementById('roll-search-input').value.trim();
 
@@ -1209,7 +1318,42 @@ async function exportRollSearchPDF() {
 
     const attendance = await getAttendance();
 
-    matchingStudents.forEach(student => {
+    // Build preview data
+    var previewRows = [];
+    matchingStudents.slice(0, 15).forEach(function (s) {
+        previewRows.push([s.roll, s.name]);
+    });
+
+    var shouldExport = await showExportPreview({
+        title: 'Roll Search PDF',
+        subtitle: 'Search: "' + searchTerm + '" \u00B7 ' + matchingStudents.length + ' student(s)',
+        stats: [
+            { label: 'Search Term', value: searchTerm },
+            { label: 'Matches', value: String(matchingStudents.length) },
+            { label: 'Total Students', value: String(students.length) }
+        ],
+        headers: ['Roll', 'Name'],
+        rows: previewRows,
+        totalRows: matchingStudents.length,
+        confirmLabel: 'Export PDF',
+        confirmIcon: '\uD83D\uDCC4'
+    });
+    if (!shouldExport) {
+        log.info('Export', 'Roll-search PDF cancelled by user');
+        return;
+    }
+
+    showLoading('📄 Generating Roll Search PDF...', true);
+
+    for (var mi = 0; mi < matchingStudents.length; mi++) {
+        updateLoadingMessage('📄 Processing student ' + (mi + 1) + ' of ' + matchingStudents.length + '...');
+        if (await checkCancelled()) {
+            log.info('Export', 'Roll-search PDF cancelled by user during generation');
+            hideLoading();
+            return;
+        }
+        var student = matchingStudents[mi];
+
         if (yPos > 240) {
             doc.addPage();
             yPos = 20;
@@ -1297,7 +1441,13 @@ async function exportRollSearchPDF() {
         }
 
         yPos += 10;
-    });
+    }
+
+    if (await checkCancelled()) {
+        log.info('Export', 'Roll-search PDF cancelled by user before save');
+        hideLoading();
+        return;
+    }
 
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
@@ -1308,11 +1458,12 @@ async function exportRollSearchPDF() {
     }
 
     doc.save('Roll_Search_Attendance_Report.pdf');
+    hideLoading();
     log.success('Export', 'Roll-search PDF saved — ' + matchingStudents.length + ' students for "' + searchTerm + '"');
 }
 
 async function exportSubjectWiseCSV() {
-    showLoading('📁 Generating CSV...');
+    showLoading('📁 Generating CSV...', true);
     log.info('Export', 'Subject-wise CSV generation started');
 
     const subjectId = document.getElementById('subject-wise-select').value;
@@ -1359,27 +1510,6 @@ async function exportSubjectWiseCSV() {
 
     hideLoading();
 
-    const parseRoll = (roll) => {
-        const rollText = String(roll ?? '');
-        const match = rollText.match(/^(.*?)(\d+)([^\d]*)$/);
-        if (!match) {
-            return null;
-        }
-
-        return {
-            prefix: match[1],
-            number: parseInt(match[2], 10),
-            width: match[2].length,
-            suffix: match[3],
-            original: rollText
-        };
-    };
-
-    const formatRoll = (template, number) => {
-        const numericPart = String(number).padStart(template.width, '0');
-        return `${template.prefix}${numericPart}${template.suffix}`;
-    };
-
     subjectAttendance.sort((a, b) => {
         const dateCompare = new Date(a.date) - new Date(b.date);
         if (dateCompare === 0) {
@@ -1417,49 +1547,59 @@ async function exportSubjectWiseCSV() {
         }
     });
 
-    const parsedRolls = Array.from(rollMap.keys())
-        .map(parseRoll)
-        .filter(Boolean)
-        .sort((a, b) => a.number - b.number);
-
-    let rosterRows = Array.from(rollMap.entries()).map(([roll, name]) => ({
+    // Build roster from actual students only — no gap-filling
+    const rosterRows = Array.from(rollMap.entries()).map(([roll, name]) => ({
         roll,
-        name,
-        notFound: false
-    }));
+        name
+    })).sort((a, b) => a.roll.localeCompare(b.roll));
 
-    if (parsedRolls.length > 0) {
-        const firstTemplate = parsedRolls[0];
-        const uniformTemplate = parsedRolls.every(item => item.prefix === firstTemplate.prefix && item.suffix === firstTemplate.suffix);
-
-        if (uniformTemplate) {
-            const existingRolls = new Set(rosterRows.map(row => row.roll));
-            const minRoll = parsedRolls[0].number;
-            const maxRoll = parsedRolls[parsedRolls.length - 1].number;
-
-            for (let number = minRoll; number <= maxRoll; number++) {
-                const generatedRoll = formatRoll(firstTemplate, number);
-                if (!existingRolls.has(generatedRoll)) {
-                    rosterRows.push({
-                        roll: generatedRoll,
-                        name: 'Not Found',
-                        notFound: true
-                    });
-                }
+    // Build preview data
+    var previewRows = [];
+    var previewSessions = attendanceSessions.slice(0, 4); // show first 4 session columns
+    rosterRows.slice(0, 12).forEach(function (row) {
+        var rowData = [row.roll, row.name];
+        var absentCount = 0;
+        previewSessions.forEach(function (session) {
+            if (Object.prototype.hasOwnProperty.call(session.attendanceRecords, row.roll)) {
+                var st = session.attendanceRecords[row.roll] === 'present' ? 'P' : 'A';
+                rowData.push(st);
+                if (st === 'A') absentCount++;
+            } else {
+                rowData.push('\u2014');
             }
+        });
+        if (attendanceSessions.length > 4) {
+            rowData.push('\u2026');
         }
+        rowData.push(String(absentCount));
+        previewRows.push(rowData);
+    });
+
+    var previewHeaders = ['Roll', 'Name'];
+    previewSessions.forEach(function (s) { previewHeaders.push(s.header.date); });
+    if (attendanceSessions.length > 4) previewHeaders.push('\u2026');
+    previewHeaders.push('Absent');
+
+    var shouldExport = await showExportPreview({
+        title: 'Subject Wise CSV',
+        subtitle: subjectName + ' \u00B7 ' + attendanceSessions.length + ' sessions \u00B7 ' + rosterRows.length + ' students',
+        stats: [
+            { label: 'Sessions', value: String(attendanceSessions.length) },
+            { label: 'Students', value: String(rosterRows.length) },
+            { label: 'Cols', value: String(previewHeaders.length - 1) }
+        ],
+        headers: previewHeaders,
+        rows: previewRows,
+        totalRows: rosterRows.length,
+        confirmLabel: 'Export CSV',
+        confirmIcon: '\uD83D\uDCC1'
+    });
+    if (!shouldExport) {
+        log.info('Export', 'Subject-wise CSV cancelled by user');
+        return;
     }
 
-    rosterRows.sort((a, b) => {
-        const parsedA = parseRoll(a.roll);
-        const parsedB = parseRoll(b.roll);
-
-        if (parsedA && parsedB && parsedA.prefix === parsedB.prefix && parsedA.suffix === parsedB.suffix) {
-            return parsedA.number - parsedB.number;
-        }
-
-        return a.roll.localeCompare(b.roll);
-    });
+    showLoading('📁 Generating CSV...', true);
 
     const csvRows = [];
     const headerRow = ['Roll Number', 'Name'];
@@ -1479,27 +1619,41 @@ async function exportSubjectWiseCSV() {
 
     csvRows.push(headerRow, lectureRow, subjectRow);
 
-    rosterRows.forEach(row => {
+    for (var rj = 0; rj < rosterRows.length; rj++) {
+        updateLoadingMessage('📁 Processing row ' + (rj + 1) + ' of ' + rosterRows.length + '...');
+        if (await checkCancelled()) {
+            log.info('Export', 'Subject-wise CSV cancelled by user during generation');
+            hideLoading();
+            return;
+        }
+        var row = rosterRows[rj];
         let absenteeCount = 0;
         const csvRow = [row.roll, row.name];
 
         attendanceSessions.forEach(session => {
-            let status = 'Not Found';
-
-            if (!row.notFound && Object.prototype.hasOwnProperty.call(session.attendanceRecords, row.roll)) {
-                status = session.attendanceRecords[row.roll] === 'present' ? 'P' : 'A';
+            if (Object.prototype.hasOwnProperty.call(session.attendanceRecords, row.roll)) {
+                const status = session.attendanceRecords[row.roll] === 'present' ? 'P' : 'A';
+                csvRow.push(status);
                 if (status === 'A') {
                     absenteeCount += 1;
                 }
+            } else {
+                // Student was enrolled but not marked for this session — show a dash
+                csvRow.push('—');
             }
-
-            csvRow.push(status);
         });
 
-        csvRow.push(row.notFound ? '0' : String(absenteeCount));
+        csvRow.push(String(absenteeCount));
         csvRows.push(csvRow);
-    });
+    }
 
+    if (await checkCancelled()) {
+        log.info('Export', 'Subject-wise CSV cancelled by user before save');
+        hideLoading();
+        return;
+    }
+
+    // Summary rows — use session totals (counts from all students in the attendance records)
     const totalPresentRow = ['Total Present', ''];
     const totalAbsentRow = ['Total Absent', ''];
 
@@ -1526,6 +1680,7 @@ async function exportSubjectWiseCSV() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    hideLoading();
     log.success('Export', 'CSV saved — ' + subjectName + ' (' + attendanceSessions.length + ' sessions, ' + rosterRows.length + ' rows)');
 }
 

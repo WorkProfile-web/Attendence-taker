@@ -3,19 +3,49 @@
 // ===================================================================
 
 // ⏳ Loading overlay helpers
-function showLoading(message = 'Loading...') {
+// Global flag — set to true when user clicks Cancel on the loading overlay.
+// Long-running operations should check this periodically and abort.
+window._loadingCancelled = false;
+
+function cancelLoading() {
+    window._loadingCancelled = true;
+    hideLoading();
+}
+
+function showLoading(message = 'Loading...', showCancel = false) {
     const overlay = document.getElementById('loading-overlay');
     const msgEl = document.getElementById('loading-message');
+    const cancelBtn = document.getElementById('loading-cancel-btn');
     if (overlay && msgEl) {
+        // Reset cancel flag each time loading is shown
+        window._loadingCancelled = false;
         msgEl.textContent = message;
         overlay.classList.add('active');
+    }
+    if (cancelBtn) {
+        if (showCancel) {
+            cancelBtn.classList.remove('hidden');
+        } else {
+            cancelBtn.classList.add('hidden');
+        }
+    }
+}
+
+function updateLoadingMessage(message) {
+    const msgEl = document.getElementById('loading-message');
+    if (msgEl) {
+        msgEl.textContent = message;
     }
 }
 
 function hideLoading() {
     const overlay = document.getElementById('loading-overlay');
+    const cancelBtn = document.getElementById('loading-cancel-btn');
     if (overlay) {
         overlay.classList.remove('active');
+    }
+    if (cancelBtn) {
+        cancelBtn.classList.add('hidden');
     }
 }
 
