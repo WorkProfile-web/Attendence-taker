@@ -40,22 +40,34 @@ async function loadDarkModePreference() {
 // ===================================================================
 // 📝 ATTENDANCE - BULK ACTIONS
 // ===================================================================
-async function markAllPresent() {
-    const subjectId = document.getElementById('subject-select').value;
-    const students = await getEnrolledStudents(subjectId);
-    students.forEach(student => {
-        currentAttendance[student.roll] = 'present';
+function refreshAttendanceUI() {
+    document.querySelectorAll('#student-attendance .student-item').forEach(item => {
+        const roll = item.dataset.roll;
+        if (roll) {
+            const presentBtn = item.querySelector('.btn-present');
+            markAttendance(roll, currentAttendance[roll] || 'absent', presentBtn);
+        }
     });
-    await loadStudentsForAttendance();
 }
 
-async function markAllAbsent() {
-    const subjectId = document.getElementById('subject-select').value;
-    const students = await getEnrolledStudents(subjectId);
-    students.forEach(student => {
-        currentAttendance[student.roll] = 'absent';
+function markAllPresent() {
+    document.querySelectorAll('#student-attendance .student-item').forEach(item => {
+        const roll = item.dataset.roll;
+        if (roll) {
+            currentAttendance[roll] = 'present';
+        }
     });
-    await loadStudentsForAttendance();
+    refreshAttendanceUI();
+}
+
+function markAllAbsent() {
+    document.querySelectorAll('#student-attendance .student-item').forEach(item => {
+        const roll = item.dataset.roll;
+        if (roll) {
+            currentAttendance[roll] = 'absent';
+        }
+    });
+    refreshAttendanceUI();
 }
 
 // ===================================================================
@@ -180,6 +192,9 @@ async function switchTab(tabName) {
     document.getElementById(tabName).classList.add('active');
     document.querySelector(`.tab:nth-child(${getTabIndex(tabName)})`).classList.add('active');
 
+    // Persist active tab so it's restored on page reload / storage mode switch
+    localStorage.setItem('activeTab', tabName);
+
     if (tabName === 'attendance') {
         await loadSubjects('subject-select');
         setTodayDate();
@@ -200,15 +215,20 @@ async function switchTab(tabName) {
         await loadGroups('roll-search-group-filter');
         selectSummaryType('student-wise');
     } else if (tabName === 'manage') {
-        await loadCurrentStudents();
-        await loadCurrentSubjects();
-        await loadSubjects('enrollment-subject');
-        await showAutoBackups();
-        await showGroupManagement();
-        await showStudentGroupAssignment();
-        await loadGroups('attendance-group-filter');
-        await loadGroups('manage-group-filter');
-        await loadGroups('bulk-group-select', false);
+        showLoading('⚙️ Loading manage panel...');
+        try {
+            await loadCurrentStudents();
+            await loadCurrentSubjects();
+            await loadSubjects('enrollment-subject');
+            await showAutoBackups();
+            await showGroupManagement();
+            await showStudentGroupAssignment();
+            await loadGroups('attendance-group-filter');
+            await loadGroups('manage-group-filter');
+            await loadGroups('bulk-group-select', false);
+        } finally {
+            hideLoading();
+        }
     }
 }
 
@@ -308,6 +328,8 @@ async function saveAttendance() {
     }
 
     try {
+        showLoading('💾 Saving attendance...');
+
         const subjects = await getSubjects();
         const selectedSubject = subjects.find(s => s.id == selectedSubjectId);
         const subjectName = selectedSubject ? selectedSubject.name : 'Unknown Subject';
@@ -320,9 +342,11 @@ async function saveAttendance() {
         const key = `${date}_${selectedSubjectId}_${selectedLecture}`;
 
         if (attendance[key]) {
+            hideLoading();
             if (!confirm(`Attendance already exists for ${selectedLecture}${getOrdinalSuffix(selectedLecture)} lecture of this subject on this date. Do you want to overwrite it?`)) {
                 return;
             }
+            showLoading('💾 Saving attendance...');
         }
 
         attendance[key] = {
@@ -335,6 +359,7 @@ async function saveAttendance() {
         };
 
         await setAttendance(attendance);
+        hideLoading();
 
         lastSavedAttendance = {
             key: key,
@@ -348,6 +373,7 @@ async function saveAttendance() {
 
         showMessage(messageDiv, successMessage, 'success');
     } catch (error) {
+        hideLoading();
         console.error('Error saving attendance:', error);
         showMessage(messageDiv, '❌ Failed to save attendance: ' + error.message, 'error');
     }
@@ -623,10 +649,15 @@ async function bulkImportStudents() {
 
     let message = '';
     if (newStudents.length > 0) {
-        students.push(...newStudents);
-        await setStudents(students);
-        message += `Successfully imported ${newStudents.length} students. `;
-        loadCurrentStudents();
+        showLoading('📋 Importing students...');
+        try {
+            students.push(...newStudents);
+            await setStudents(students);
+            message += `Successfully imported ${newStudents.length} students. `;
+            loadCurrentStudents();
+        } finally {
+            hideLoading();
+        }
     }
 
     if (duplicates.length > 0) {
@@ -741,6 +772,7 @@ async function clearAllSubjects() {
 // 📤 SHARE & EXPORT FUNCTIONS
 // ===================================================================
 async function shareViaWhatsApp(summaryType) {
+    showLoading('📱 Preparing WhatsApp share...');
     let message = '';
 
     if (summaryType === 'student-wise') {
@@ -748,6 +780,7 @@ async function shareViaWhatsApp(summaryType) {
         const attendance = await getAttendance();
 
         if (students.length === 0) {
+            hideLoading();
             alert('No students found to share.');
             return;
         }
@@ -798,6 +831,7 @@ async function shareViaWhatsApp(summaryType) {
     } else if (summaryType === 'subject-wise') {
         const subjectId = document.getElementById('subject-wise-select').value;
         if (!subjectId) {
+            hideLoading();
             alert('Please select a subject first.');
             return;
         }
@@ -810,6 +844,7 @@ async function shareViaWhatsApp(summaryType) {
         const subjectAttendance = Object.values(attendance).filter(record => record.subjectId == subjectId);
 
         if (subjectAttendance.length === 0) {
+            hideLoading();
             alert('No attendance records found for this subject.');
             return;
         }
@@ -844,25 +879,28 @@ async function shareViaWhatsApp(summaryType) {
             }
             message += `\n`;
         });
-    }
-
-    message += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
+    }        message += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
     message += `Generated by Attendance Tracker 📱`;
 
+    hideLoading();
     const whatsappURL = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappURL, '_blank');
 }
 
 async function exportStudentWisePDF() {
+    showLoading('📄 Generating Student Wise PDF...');
+
     const students = await getStudents();
     const attendance = await getAttendance();
 
     if (students.length === 0) {
+        hideLoading();
         alert('No students found to export.');
         return;
     }
 
     const { jsPDF } = window.jspdf;
+
     const doc = new jsPDF();
     doc.setFont("helvetica");
 
@@ -880,6 +918,8 @@ async function exportStudentWisePDF() {
 
     doc.setTextColor(0, 0, 0);
     let yPos = 55;
+
+    hideLoading();
 
     const attendanceByStudent = {};
     students.forEach(student => {
@@ -982,9 +1022,11 @@ async function exportStudentWisePDF() {
 }
 
 async function exportSubjectWisePDF() {
+    showLoading('📄 Generating Subject Wise PDF...');
     const subjectId = document.getElementById('subject-wise-select').value;
 
     if (!subjectId) {
+        hideLoading();
         alert('Please select a subject first.');
         return;
     }
@@ -998,11 +1040,13 @@ async function exportSubjectWisePDF() {
     const subjectAttendance = Object.values(attendance).filter(record => record.subjectId == subjectId);
 
     if (subjectAttendance.length === 0) {
+        hideLoading();
         alert('No attendance records found for this subject.');
         return;
     }
 
     const { jsPDF } = window.jspdf;
+
     const doc = new jsPDF();
     doc.setFont("helvetica");
 
@@ -1020,6 +1064,8 @@ async function exportSubjectWisePDF() {
 
     doc.setTextColor(0, 0, 0);
     let yPos = 55;
+
+    hideLoading();
 
     subjectAttendance.sort((a, b) => {
         const dateCompare = new Date(a.date) - new Date(b.date);
@@ -1104,9 +1150,11 @@ async function exportSubjectWisePDF() {
 }
 
 async function exportRollSearchPDF() {
+    showLoading('📄 Generating Roll Search PDF...');
     const searchTerm = document.getElementById('roll-search-input').value.trim();
 
     if (!searchTerm) {
+        hideLoading();
         alert('Please enter a roll number to search.');
         return;
     }
@@ -1117,11 +1165,13 @@ async function exportRollSearchPDF() {
     );
 
     if (matchingStudents.length === 0) {
+        hideLoading();
         alert('No students found matching the search term.');
         return;
     }
 
     const { jsPDF } = window.jspdf;
+
     const doc = new jsPDF();
     doc.setFont("helvetica");
 
@@ -1139,6 +1189,8 @@ async function exportRollSearchPDF() {
 
     doc.setTextColor(0, 0, 0);
     let yPos = 55;
+
+    hideLoading();
 
     const attendance = await getAttendance();
 
@@ -1244,9 +1296,12 @@ async function exportRollSearchPDF() {
 }
 
 async function exportSubjectWiseCSV() {
+    showLoading('📁 Generating CSV...');
+
     const subjectId = document.getElementById('subject-wise-select').value;
 
     if (!subjectId) {
+        hideLoading();
         alert('Please select a subject first.');
         return;
     }
@@ -1270,6 +1325,7 @@ async function exportSubjectWiseCSV() {
     }
 
     if (subjectAttendance.length === 0) {
+        hideLoading();
         alert('No attendance records found for this subject.' + (dateFrom || dateTo ? ' in the selected date range.' : ''));
         return;
     }
@@ -1281,6 +1337,8 @@ async function exportSubjectWiseCSV() {
         }
         return str;
     };
+
+    hideLoading();
 
     const parseRoll = (roll) => {
         const rollText = String(roll ?? '');
@@ -1586,17 +1644,7 @@ function refreshCustomDropdown(selectId) {
 // 🚀 INITIALIZATION
 // ===================================================================
 document.addEventListener('DOMContentLoaded', async function () {
-    // Initialize Firebase if already in firebase mode
-    if (storageMode === 'firebase') {
-        try {
-            await initializeFirebase();
-            console.log('🚀 Firebase pre-loaded for firebase storage mode');
-        } catch (error) {
-            console.error('Failed to initialize Firebase:', error);
-        }
-    }
-
-    // Load dark mode preference
+    // Load dark mode preference (also initializes Firebase if in firebase mode)
     await loadDarkModePreference();
 
     // Initialize storage mode UI
@@ -1658,6 +1706,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Restore manage section expand/collapse state
     restoreSectionStates();
 
-    // Initialize the app
-    switchTab('attendance');
+    // Initialize the app — restore the last active tab, or default to attendance
+    const savedTab = localStorage.getItem('activeTab');
+    const validTabs = ['attendance', 'track', 'analytics', 'summary', 'manage'];
+    const initialTab = validTabs.includes(savedTab) ? savedTab : 'attendance';
+    switchTab(initialTab);
 });

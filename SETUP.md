@@ -63,18 +63,19 @@ const firebaseConfig = {
 };
 ```
 
-### **Step 4: Update index.html**
+### **Step 4: Update data-layer.js**
 
-1. Open `index.html` in a text editor
-2. Find this section (around **line 1474**):
+1. Open `data-layer.js` in a text editor
+2. Find this section (at the top of the file, around **line 2**):
 
 ```javascript
 // ===================================================================
-// 🔐 FIREBASE CONFIGURATION - REPLACE WITH YOUR OWN VALUES!
+// 🔐 FIREBASE CONFIGURATION
 // ===================================================================
 const firebaseConfig = {
     apiKey: "AIzaSyBzE7HH4XCQy_oySR-69MNH1KqmWsgMo6Q",
     authDomain: "attendance-tracker-c8d71.firebaseapp.com",
+    databaseURL: "https://attendance-tracker-c8d71-default-rtdb.firebaseio.com",
     // ... more config
 };
 ```
@@ -104,17 +105,19 @@ const firebaseConfig = {
 3. Click **Add User**
 4. **IMPORTANT:** Copy the **UID** (User ID) - looks like `8VzKT6ZxuAMHVMK6e8UaPjI4Iho2`
 
-### **Step 3: Update index.html with Your UID**
+### **Step 3: Update data-layer.js with Your UID**
 
-1. Open `index.html`
-2. Find this section (around **line 1808**):
+1. Open `data-layer.js`
+2. Find this section (around **line 112**):
 
 ```javascript
-// Verify this is the authorized user
-if (currentUser.uid !== '8VzKT6ZxuAMHVMK6e8UaPjI4Iho2') {
-    await auth.signOut();
-    // ... error handling
-}
+        if (currentUser.uid !== '8VzKT6ZxuAMHVMK6e8UaPjI4Iho2') {
+            await auth.signOut();
+            currentUser = null;
+            alert('❌ You are not authorized to edit this database.');
+            updateStorageModeUI();
+            return;
+        }
 ```
 
 3. **Replace** `'8VzKT6ZxuAMHVMK6e8UaPjI4Iho2'` with **your UID** from Step 2
@@ -254,7 +257,7 @@ Replace `YOUR_USERNAME` with your GitHub username.
 
 ### **Data Not Syncing**
 
-1. Verify Firebase config is correct in `index.html`
+1. Verify Firebase config is correct in `data-layer.js`
 2. Check Firebase Console → Realtime Database → Data tab
 3. Verify Security Rules allow your operations
 4. Check browser console for permission errors
@@ -269,7 +272,7 @@ Replace `YOUR_USERNAME` with your GitHub username.
 
 The app uses:
 - Lazy loading (Firebase SDK loads only when needed)
-- Data caching (5-second cache for students/subjects)
+- Data caching (5-minute cache for students/subjects)
 - These are already implemented and should make the app fast
 
 ---

@@ -2,6 +2,23 @@
 // 🎨 UI RENDERING FUNCTIONS
 // ===================================================================
 
+// ⏳ Loading overlay helpers
+function showLoading(message = 'Loading...') {
+    const overlay = document.getElementById('loading-overlay');
+    const msgEl = document.getElementById('loading-message');
+    if (overlay && msgEl) {
+        msgEl.textContent = message;
+        overlay.classList.add('active');
+    }
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
+}
+
 function showMessage(element, message, type = 'error') {
     element.textContent = message;
     element.className = `message ${type}`;

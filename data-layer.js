@@ -80,7 +80,7 @@ let groupsCache = null;
 let studentsCacheTime = 0;
 let subjectsCacheTime = 0;
 let groupsCacheTime = 0;
-const CACHE_TTL = 5000;
+const CACHE_TTL = 300000;
 
 function invalidateCache() {
     studentsCache = null;
@@ -159,6 +159,9 @@ async function switchStorageMode(mode) {
         }
         firebaseAuthenticated = true;
         localStorage.setItem('firebaseAuthenticated', 'true');
+    } else if (mode === 'localStorage') {
+        firebaseAuthenticated = false;
+        localStorage.removeItem('firebaseAuthenticated');
     }
 
     const oldMode = storageMode;
@@ -168,7 +171,9 @@ async function switchStorageMode(mode) {
     updateStorageModeUI();
 
     if (oldMode !== mode) {
-        const migrate = confirm(`✅ Storage mode changed to ${mode === 'firebase' ? 'Firebase Cloud' : 'Local Storage'}.\\n\\nWould you like to copy your current data to the new storage?`);
+        const migrate = confirm(`✅ Storage mode changed to ${mode === 'firebase' ? 'Firebase Cloud' : 'Local Storage'}.
+
+Would you like to copy your current data to the new storage?`);
         if (migrate) {
             await migrateData(oldMode, mode);
         }
@@ -524,7 +529,9 @@ async function restoreAutoBackup(ts) {
         return false;
     }
 
-    if (!confirm(`Restore backup from ${new Date(ts).toLocaleString()}?\\n\\nThis will replace all current data.`)) {
+    if (!confirm(`Restore backup from ${new Date(ts).toLocaleString()}?
+
+This will replace all current data.`)) {
         return false;
     }
 
@@ -533,6 +540,7 @@ async function restoreAutoBackup(ts) {
         const data = snap.data || {};
         if (Array.isArray(data.students)) await setStudents(data.students);
         if (Array.isArray(data.subjects)) await setSubjects(data.subjects);
+        if (Array.isArray(data.groups)) await setGroups(data.groups);
         if (data.attendance) await setAttendance(data.attendance);
         if (data.enrollments) await setEnrollments(data.enrollments);
 
@@ -567,24 +575,29 @@ async function deleteAutoBackup(ts) {
 // 📤 EXPORT / IMPORT BACKUP
 // ===================================================================
 async function exportData() {
-    const data = {
-        students: await getStudents(),
-        subjects: await getSubjects(),
-        groups: await getGroups(),
-        attendance: await getAttendance(),
-        enrollments: await getEnrollments(),
-        exportDate: new Date().toISOString()
-    };
+    showLoading('💾 Exporting backup...');
+    try {
+        const data = {
+            students: await getStudents(),
+            subjects: await getSubjects(),
+            groups: await getGroups(),
+            attendance: await getAttendance(),
+            enrollments: await getEnrollments(),
+            exportDate: new Date().toISOString()
+        };
 
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `attendance_backup_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `attendance_backup_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } finally {
+        hideLoading();
+    }
 }
 
 function importData() {
@@ -618,7 +631,10 @@ function handleFileImport(event) {
 ⚠️ This will REPLACE all current data!
 `;
 
-            if (confirm(preview + '\\n\\nDo you want to continue?')) {
+            if (confirm(preview + '
+
+Do you want to continue?')) {
+                showLoading('📁 Importing data...');
                 showMessage(messageDiv, '⏳ Importing data to Firebase...', 'success');
 
                 let imported = [];
@@ -673,9 +689,11 @@ function handleFileImport(event) {
                     'success'
                 );
 
+                hideLoading();
                 event.target.value = '';
             }
         } catch (error) {
+            hideLoading();
             showMessage(messageDiv, '❌ Invalid JSON file: ' + error.message, 'error');
         }
     };
