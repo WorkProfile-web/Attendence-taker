@@ -1797,6 +1797,245 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+    <!-- 🛡️ Global Error Boundary & Structured Logging - must run before other scripts -->
+    <script>
+    (function () {
+        // ===================================================================
+        // 📝 STRUCTURED LOGGING UTILITY
+        // ===================================================================
+        // Expose a global helper for consistent structured logging across the app.
+        // Usage: log.error('Component', 'Message', { extra: 'data' });
+        //        log.info('Component', 'Message');
+        //        log.warn('Component', 'Message');
+        //        log.success('Component', 'Message');
+        // ===================================================================
+        // ===================================================================
+        // 🔧 LOG LEVEL CONFIGURATION
+        // ===================================================================
+        // Priority: 0=error  1=warn  2=info/success
+        // Default: 'info' (shows all). Set via:
+        //   - localStorage:   localStorage.logLevel = 'warn'
+        //   - URL parameter:  ?logLevel=error
+        //   - Programmatic:   log.setLevel('warn')
+        // ===================================================================
+        var LOG_LEVELS = { error: 0, warn: 1, info: 2, success: 2 };
+        var _currentLevel = 'warn';
+
+        // Read initial level from localStorage
+        try {
+            var stored = localStorage.getItem('logLevel');
+            if (stored && LOG_LEVELS[stored] !== undefined) {
+                _currentLevel = stored;
+            }
+        } catch (e) { /* localStorage not available */ }
+
+        // Check URL parameter (?logLevel=...) — overrides localStorage
+        try {
+            var match = window.location.search.match(/[?&]logLevel=(error|warn|info)/i);
+            if (match) {
+                _currentLevel = match[1].toLowerCase();
+            }
+        } catch (e) { /* ignore */ }
+
+        function _shouldLog(level) {
+            return LOG_LEVELS[level] !== undefined && LOG_LEVELS[level] <= LOG_LEVELS[_currentLevel];
+        }
+
+        window.log = {
+            _timestamp: function () {
+                return new Date().toISOString().slice(11, 19);
+            },
+            _group: function (label, data) {
+                console.groupCollapsed('%c' + label, 'font-weight:bold;');
+                if (data) {
+                    Object.entries(data).forEach(function (_ref) {
+                        var key = _ref[0], val = _ref[1];
+                        if (val !== undefined && val !== null) {
+                            console.log('  ' + key + ':', val);
+                        }
+                    });
+                }
+            },
+            _end: function () {
+                console.groupEnd();
+            },
+
+            // 🔧 Public API: configure log level
+            config: function (newLevel) {
+                if (newLevel && LOG_LEVELS[newLevel] !== undefined) {
+                    _currentLevel = newLevel;
+                    try { localStorage.setItem('logLevel', newLevel); } catch (e) {}
+                    console.log('🪵 Log level set to: ' + newLevel + ' (shows ' + newLevel + ' and above)');
+                } else {
+                    console.log('🪵 Current log level: ' + _currentLevel + ' | Available: error, warn, info');
+                }
+            },
+            setLevel: function (newLevel) {
+                this.config(newLevel);
+            },
+            getLevel: function () {
+                return _currentLevel;
+            },
+
+            // 🚨 Error — always shown
+            error: function (component, message, details) {
+                if (!_shouldLog('error')) return;
+                var ts = this._timestamp();
+                this._group('🚨 [' + ts + '] ' + component + ' — ' + message, {
+                    'Component': component,
+                    'Message': message,
+                    'Timestamp': ts,
+                    'URL': window.location.href,
+                    'Details': details || ''
+                });
+                if (details && details.stack) {
+                    var stackStr = details.stack;
+                    if (typeof stackStr === 'string' && stackStr.length > 300) {
+                        stackStr = stackStr.slice(0, 300) + '...';
+                    }
+                    console.log('  Stack:', stackStr);
+                }
+                this._end();
+            },
+
+            // ⚠️ Warning — shown when level >= warn
+            warn: function (component, message, details) {
+                if (!_shouldLog('warn')) return;
+                var ts = this._timestamp();
+                this._group('⚠️ [' + ts + '] ' + component + ' — ' + message, {
+                    'Component': component,
+                    'Message': message,
+                    'Timestamp': ts,
+                    'Details': details || ''
+                });
+                this._end();
+            },
+
+            // ℹ️ Info — shown when level >= info
+            info: function (component, message, details) {
+                if (!_shouldLog('info')) return;
+                var ts = this._timestamp();
+                this._group('ℹ️ [' + ts + '] ' + component + ' — ' + message, {
+                    'Component': component,
+                    'Message': message,
+                    'Timestamp': ts,
+                    'Details': details || ''
+                });
+                this._end();
+            },
+
+            // ✅ Success — shown when level >= info (same as info)
+            success: function (component, message, details) {
+                if (!_shouldLog('success')) return;
+                var ts = this._timestamp();
+                this._group('✅ [' + ts + '] ' + component + ' — ' + message, {
+                    'Component': component,
+                    'Message': message,
+                    'Timestamp': ts,
+                    'Details': details || ''
+                });
+                this._end();
+            }
+        };
+
+        // ===================================================================
+        // 🛡️ GLOBAL ERROR BOUNDARY
+        // ===================================================================
+        function hideAllLoaders() {
+            var el = document.getElementById('loading-overlay');
+            if (el) el.classList.remove('active');
+        }
+
+        function showFatalError(msg) {
+            hideAllLoaders();
+            var container = document.querySelector('.container');
+            if (!container) return;
+            var banner = document.createElement('div');
+            banner.id = 'error-boundary-banner';
+            banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:10000;padding:14px 20px;background:#d32f2f;color:#fff;font-size:14px;font-weight:600;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.3);animation:slideDown 0.3s ease-out;line-height:1.5;';
+            banner.textContent = msg;
+            document.body.prepend(banner);
+            setTimeout(function () {
+                banner.style.transition = 'opacity 0.5s';
+                banner.style.opacity = '0';
+                setTimeout(function () { banner.remove(); }, 500);
+            }, 10000);
+        }
+
+        window.onerror = function (message, source, lineno, colno, error) {
+            hideAllLoaders();
+
+            var errorName = error ? error.name : 'Error';
+            var fileName = source ? source.split('/').pop() || 'unknown' : 'unknown';
+            var stackStr = error && error.stack ? error.stack.slice(0, 500) : '(no stack)';
+
+            // Structured console group for runtime errors
+            console.groupCollapsed('%c🚨 [ErrorBoundary] ' + errorName + ' in ' + fileName, 'color:#d32f2f;font-weight:bold;font-size:13px;');
+            console.log('  Name:', errorName);
+            console.log('  Message:', message);
+            console.log('  File:', source || '(inline/unknown)');
+            console.log('  Line:', lineno, '  Column:', colno);
+            console.log('  Timestamp:', new Date().toISOString());
+            console.log('  URL:', window.location.href);
+            console.log('  Stack:');
+            if (error && error.stack) {
+                var stackLines = error.stack.split('\n');
+                for (var si = 0; si < stackLines.length; si++) {
+                    console.log('    ' + stackLines[si]);
+                }
+            } else {
+                console.log('    (no stack trace available)');
+            }
+            console.groupEnd();
+
+            // Show a user-visible message for syntax/parse errors
+            var msgStr = message + '';
+            if (source && (msgStr.indexOf('Unexpected token') !== -1 || msgStr.indexOf('Invalid or unexpected') !== -1)) {
+                showFatalError('⚠️ Syntax error in ' + fileName + '. Some features may not work. Check the console (F12) for details.');
+            } else if (msgStr === 'Script error.' && !source) {
+                // Cross-origin script errors — ignore (no actionable info)
+            } else {
+                showFatalError('⚠️ Something went wrong. Check the console (F12, expand the \u25B6 error group) for details.');
+            }
+
+            return true; // Prevent default browser handling
+        };
+
+        window.addEventListener('unhandledrejection', function (event) {
+            hideAllLoaders();
+
+            var reason = event.reason || {};
+            var reasonMsg = reason && reason.message ? reason.message : String(reason);
+            var reasonStack = reason && reason.stack ? reason.stack.slice(0, 500) : '(no stack)';
+
+            // Structured console group for unhandled promise rejections
+            console.groupCollapsed('%c🚨 [UnhandledRejection] ' + (reasonMsg.length > 80 ? reasonMsg.slice(0, 80) + '...' : reasonMsg), 'color:#d32f2f;font-weight:bold;font-size:13px;');
+            console.log('  Type:', 'Unhandled Promise Rejection');
+            console.log('  Message:', reasonMsg);
+            console.log('  Timestamp:', new Date().toISOString());
+            console.log('  URL:', window.location.href);
+            if (reason && reason.stack) {
+                console.log('  Stack:');
+                var stackLines2 = reason.stack.split('\n');
+                for (var sj = 0; sj < stackLines2.length; sj++) {
+                    console.log('    ' + stackLines2[sj]);
+                }
+            } else if (reason && reason.message) {
+                console.log('  Reason object:', reason);
+            }
+            console.groupEnd();
+
+            var msg = typeof reason === 'string' ? reason : (reason.message || String(reason));
+            if (msg.length > 100) msg = msg.slice(0, 100) + '...';
+            showFatalError('⚠️ Operation failed: ' + msg + '. Check the console (F12) for details.');
+
+            event.preventDefault();
+        });
+
+        console.log('🛡️ Error boundary active — structured logging ready (try window.log.error(...) in console)');
+    })();
+    </script>
+
     <script src="data-layer.js"></script>
     <script src="ui-renderer.js"></script>
     <script src="app.js"></script>

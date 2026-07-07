@@ -65,9 +65,12 @@ async function showAutoBackups() {
     const container = document.getElementById('auto-backup-list');
 
     if (backups.length === 0) {
+        log.info('Backup', 'No auto-backups available');
         container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No auto-backups available yet. First backup will be created in 15 minutes.</p>';
         return;
     }
+
+    log.info('Backup', 'Displaying ' + backups.length + ' auto-backups');
 
     let html = '<h4 style="margin-bottom: 15px; color: var(--text-primary);">📦 Available Auto-Backups</h4>';
     html += '<p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">Auto-backups are created every 15 minutes. Last ' + AUTO_BACKUP_KEEP + ' snapshots are kept.</p>';
@@ -121,6 +124,8 @@ async function loadStudentsForAttendance() {
         return;
     }
 
+    log.info('Attendance', 'Loading students for subject=' + selectedSubjectId + ' date=' + date + ' lecture=' + selectedLecture);
+
     let students = await getEnrolledStudents(selectedSubjectId);
 
     // Apply group filter if selected
@@ -128,6 +133,7 @@ async function loadStudentsForAttendance() {
     if (groupFilter && groupFilter.value) {
         const selectedGroupId = groupFilter.value;
         students = students.filter(s => s.groups && s.groups.includes(selectedGroupId));
+        log.info('Attendance', 'Group filter active: ' + groupFilter.options[groupFilter.selectedIndex].text + ' (' + students.length + ' students)');
     }
 
     studentAttendanceDiv.classList.remove('hidden');
@@ -136,7 +142,6 @@ async function loadStudentsForAttendance() {
     const attendance = await getAttendance();
     const key = `${date}_${selectedSubjectId}_${selectedLecture}`;
     const existingRecord = attendance[key];
-
     currentAttendance = {};
     students.forEach(student => {
         if (existingRecord && existingRecord.records && existingRecord.records[student.roll]) {
@@ -176,11 +181,14 @@ async function loadStudentsForAttendance() {
     });
 
     studentAttendanceDiv.innerHTML = html;
+    log.success('Attendance', 'Loaded ' + students.length + ' students for attendance' + (existingRecord ? ' (edit mode)' : ''));
 }
 
 async function showLectureSequence(subjectId, date) {
     const attendance = await getAttendance();
     const subjectAttendance = Object.values(attendance).filter(record => record.subjectId == subjectId);
+
+    log.info('Attendance', 'Lecture sequence for subject=' + subjectId + ' — ' + subjectAttendance.length + ' records');
 
     if (subjectAttendance.length > 0) {
         const dateGroups = {};
@@ -219,9 +227,11 @@ async function updateLectureInfo(subjectId, date, lectureNumber) {
         const presentStudents = Object.values(attendance[key].records).filter(status => status === 'present').length;
         document.getElementById('lecture-info').textContent =
             `${lectureNumber}${getOrdinalSuffix(lectureNumber)} lecture - ${subjectName} (${presentStudents}/${totalStudents} present)`;
+        log.info('Attendance', 'Lecture info updated: ' + subjectName + ' L' + lectureNumber + ' — ' + presentStudents + '/' + totalStudents + ' present');
     } else {
         document.getElementById('lecture-info').textContent =
             `${lectureNumber}${getOrdinalSuffix(lectureNumber)} lecture - ${subjectName} (Not taken yet)`;
+        log.info('Attendance', 'Lecture info updated: ' + subjectName + ' L' + lectureNumber + ' — not taken yet');
     }
 }
 
@@ -258,6 +268,8 @@ async function showAttendanceSummary() {
         summaryDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Please select a subject to view attendance summary.</p>';
         return;
     }
+
+    log.info('Track', 'Showing attendance summary for subject=' + selectedSubjectId + (dateFrom ? ' from=' + dateFrom : '') + (dateTo ? ' to=' + dateTo : '') + (selectedGroupId ? ' group=' + selectedGroupId : ''));
 
     const attendance = await getAttendance();
     let allStudents = await getStudents();
@@ -372,6 +384,7 @@ async function showAttendanceSummary() {
     });
 
     summaryDiv.innerHTML = html;
+    log.success('Track', 'Attendance summary rendered with ' + subjectAttendance.length + ' records');
 }
 
 function editAttendanceRecord(subjectId, date, lectureNumber) {
@@ -415,6 +428,8 @@ async function showAnalytics() {
     const groupFilter = document.getElementById('analytics-group-filter');
     const selectedGroupId = groupFilter ? groupFilter.value : '';
 
+    log.info('Analytics', 'Loading analytics' + (subjectId ? ' subject=' + subjectId : ' all subjects') + (selectedGroupId ? ' group=' + selectedGroupId : ''));
+
     let students = await getStudents();
 
     // Apply group filter
@@ -426,6 +441,7 @@ async function showAnalytics() {
     const subjects = await getSubjects();
 
     if (students.length === 0 || Object.keys(attendance).length === 0) {
+        log.warn('Analytics', 'No data available' + (selectedGroupId ? ' for selected group' : ''));
         analyticsDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">' + (selectedGroupId ? 'No data available for the selected group.' : 'No data available.') + '</p>';
         return;
     }
@@ -633,12 +649,15 @@ async function showAnalytics() {
     `;
 
     analyticsDiv.innerHTML = html;
+    log.success('Analytics', 'Dashboard rendered — ' + totalClasses + ' classes, ' + totalPresent + ' present, ' + totalAbsent + ' absent, ' + overallPercentage + '% avg');
 }
 
 async function generateStudentWiseSummary() {
     const summaryDiv = document.getElementById('summary-content');
     const groupFilter = document.getElementById('student-wise-group-filter');
     const selectedGroupId = groupFilter ? groupFilter.value : '';
+
+    log.info('Reports', 'Generating student-wise summary' + (selectedGroupId ? ' group=' + selectedGroupId : '') + (document.getElementById('student-wise-date-from').value ? ' with date filter' : ''));
 
     let students = await getStudents();
 
@@ -653,6 +672,7 @@ async function generateStudentWiseSummary() {
     const dateTo = document.getElementById('student-wise-date-to').value;
 
     if (students.length === 0) {
+        log.warn('Reports', 'No students found for student-wise summary');
         summaryDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">' + (selectedGroupId ? 'No students found in the selected group.' : 'No students found.') + '</p>';
         return;
     }
@@ -770,6 +790,7 @@ async function generateStudentWiseSummary() {
     });
 
     summaryDiv.innerHTML = html;
+    log.success('Reports', 'Student-wise summary rendered for ' + students.length + ' students');
 }
 
 async function generateSubjectWiseSummary() {
@@ -779,9 +800,12 @@ async function generateSubjectWiseSummary() {
     const dateTo = document.getElementById('subject-wise-date-to').value;
 
     if (!subjectId) {
+        log.warn('Reports', 'Subject-wise summary attempted without selecting a subject');
         summaryDiv.innerHTML = '<p style="color: var(--error-color); text-align: center; padding: 20px;">Please select a subject first.</p>';
         return;
     }
+
+    log.info('Reports', 'Generating subject-wise summary for subject=' + subjectId + (dateFrom ? ' from=' + dateFrom : '') + (dateTo ? ' to=' + dateTo : ''));
 
     const subjects = await getSubjects();
     const selectedSubject = subjects.find(s => s.id == subjectId);
@@ -894,6 +918,7 @@ async function generateSubjectWiseSummary() {
     });
 
     summaryDiv.innerHTML = html;
+    log.success('Reports', 'Subject-wise summary rendered for ' + subjectAttendance.length + ' records');
 }
 
 async function generateRollSearchSummary() {
@@ -905,9 +930,12 @@ async function generateRollSearchSummary() {
     const selectedGroupId = groupFilter ? groupFilter.value : '';
 
     if (!searchTerm) {
+        log.warn('Reports', 'Roll search attempted without search term');
         summaryDiv.innerHTML = '<p style="color: var(--error-color); text-align: center; padding: 20px;">Please enter a roll number to search.</p>';
         return;
     }
+
+    log.info('Reports', 'Roll search for "' + searchTerm + '"' + (selectedGroupId ? ' group=' + selectedGroupId : '') + (dateFrom ? ' from=' + dateFrom : '') + (dateTo ? ' to=' + dateTo : ''));
 
     let students = await getStudents();
 
@@ -1034,6 +1062,7 @@ async function generateRollSearchSummary() {
     });
 
     summaryDiv.innerHTML = html;
+    log.success('Reports', 'Roll search found ' + matchingStudents.length + ' matching students');
 }
 
 async function loadCurrentStudents(groupId) {
@@ -1158,9 +1187,12 @@ async function showGroupManagement() {
     const container = document.getElementById('group-list');
 
     if (groups.length === 0) {
+        log.info('Groups', 'No groups to display');
         container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No groups created yet.</p>';
         return;
     }
+
+    log.info('Groups', 'Displaying ' + groups.length + ' groups');
 
     let html = '';
     groups.forEach(group => {
@@ -1190,14 +1222,18 @@ async function showStudentGroupAssignment() {
     const container = document.getElementById('student-group-assignment');
 
     if (students.length === 0) {
+        log.info('Groups', 'No students to assign to groups');
         container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No students found. Add students first.</p>';
         return;
     }
 
     if (groups.length === 0) {
+        log.info('Groups', 'No groups available for assignment');
         container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No groups found. Create groups first.</p>';
         return;
     }
+
+    log.info('Groups', 'Showing group assignment for ' + students.length + ' students and ' + groups.length + ' groups');
 
     // Get or set pagination render limit
     let renderLimit = parseInt(container.dataset.renderLimit) || ASSIGNMENT_PAGE_SIZE;
@@ -1336,6 +1372,8 @@ async function loadEnrollments() {
         enrollmentDiv.style.display = 'none';
         return;
     }
+
+    log.info('Enrollments', 'Loading enrollments for subject=' + subjectId);
 
     enrollmentDiv.style.display = 'block';
     const allStudents = await getStudents();

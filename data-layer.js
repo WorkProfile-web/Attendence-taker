@@ -33,7 +33,7 @@ async function initializeFirebase() {
 
     firebaseLoadPromise = (async () => {
         try {
-            console.log('⏳ Loading Firebase SDK...');
+            log.info('Firebase', 'Loading SDK...');
 
             await loadScript('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
             await loadScript('https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js');
@@ -45,10 +45,10 @@ async function initializeFirebase() {
             db = firebase.database();
             auth = firebase.auth();
             firebaseLoaded = true;
-            console.log('✅ Firebase initialized successfully');
+            log.success('Firebase', 'Initialized successfully');
             return db;
         } catch (error) {
-            console.error('❌ Firebase initialization failed:', error);
+            log.error('Firebase', 'Initialization failed', { error: (error && error.message) || String(error), stack: error && error.stack });
             firebaseLoadPromise = null;
             throw error;
         }
@@ -119,8 +119,8 @@ async function showFirebaseAuthPrompt() {
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
         currentUser = userCredential.user;
 
-        console.log('✅ Authenticated as:', currentUser.email);
-        console.log('🆔 UID:', currentUser.uid);
+        log.success('Auth', 'Authenticated as ' + currentUser.email);
+        log.info('Auth', 'UID: ' + currentUser.uid);
 
         if (currentUser.uid !== '8VzKT6ZxuAMHVMK6e8UaPjI4Iho2') {
             await auth.signOut();
@@ -134,7 +134,7 @@ async function showFirebaseAuthPrompt() {
         localStorage.setItem('firebaseAuthenticated', 'true');
         switchStorageMode('firebase');
     } catch (error) {
-        console.error('Authentication failed:', error);
+        log.error('Auth', 'Authentication failed', { error: (error && error.message) || String(error), code: error && error.code });
         alert(`❌ Login failed: ${error.message}`);
         updateStorageModeUI();
     }
@@ -151,10 +151,10 @@ async function switchStorageMode(mode) {
                 await initializeFirebase();
                 currentUser = auth.currentUser;
                 if (currentUser) {
-                    console.log('✅ Session restored:', currentUser.email);
+                    log.success('Auth', 'Session restored for ' + currentUser.email);
                 }
             } catch (error) {
-                console.log('No previous session found');
+                log.info('Auth', 'No previous session found');
             }
         }
         firebaseAuthenticated = true;
@@ -206,7 +206,7 @@ async function migrateData(fromMode, toMode) {
 
         alert('✅ Data migrated successfully!');
     } catch (error) {
-        console.error('Migration error:', error);
+        log.error('Migration', 'Data migration failed', { error: (error && error.message) || String(error) });
         alert('⚠️ Error migrating data. Please try again.');
     }
 }
@@ -237,7 +237,7 @@ async function getStudents() {
             studentsCacheTime = now;
             return studentsCache;
         } catch (error) {
-            console.error('Error fetching students from Firebase:', error);
+            log.error('Storage', 'Error fetching students', { error: (error && error.message) || String(error) });
             throw error;
         }
     } else {
@@ -254,7 +254,7 @@ async function setStudents(students) {
             await initializeFirebase();
             await db.ref('students').set(students);
         } catch (error) {
-            console.error('Error saving students to Firebase:', error);
+            log.error('Storage', 'Error saving students', { error: (error && error.message) || String(error) });
             throw error;
         }
     } else {
@@ -276,7 +276,7 @@ async function getSubjects() {
             subjectsCacheTime = now;
             return subjectsCache;
         } catch (error) {
-            console.error('Error fetching subjects from Firebase:', error);
+            log.error('Storage', 'Error fetching subjects', { error: (error && error.message) || String(error) });
             throw error;
         }
     } else {
@@ -293,7 +293,7 @@ async function setSubjects(subjects) {
             await initializeFirebase();
             await db.ref('subjects').set(subjects);
         } catch (error) {
-            console.error('Error saving subjects to Firebase:', error);
+            log.error('Storage', 'Error saving subjects', { error: (error && error.message) || String(error) });
             throw error;
         }
     } else {
@@ -308,7 +308,7 @@ async function getAttendance() {
             const snapshot = await db.ref('attendance').once('value');
             return snapshot.val() || {};
         } catch (error) {
-            console.error('Error fetching attendance from Firebase:', error);
+            log.error('Storage', 'Error fetching attendance', { error: (error && error.message) || String(error) });
             throw error;
         }
     } else {
@@ -322,7 +322,7 @@ async function setAttendance(attendance) {
             await initializeFirebase();
             await db.ref('attendance').set(attendance);
         } catch (error) {
-            console.error('Error saving attendance to Firebase:', error);
+            log.error('Storage', 'Error saving attendance', { error: (error && error.message) || String(error) });
             throw error;
         }
     } else {
@@ -344,7 +344,7 @@ async function getGroups() {
             groupsCacheTime = now;
             return groupsCache;
         } catch (error) {
-            console.error('Error fetching groups from Firebase:', error);
+            log.error('Storage', 'Error fetching groups', { error: (error && error.message) || String(error) });
             throw error;
         }
     } else {
@@ -361,7 +361,7 @@ async function setGroups(groups) {
             await initializeFirebase();
             await db.ref('groups').set(groups);
         } catch (error) {
-            console.error('Error saving groups to Firebase:', error);
+            log.error('Storage', 'Error saving groups', { error: (error && error.message) || String(error) });
             throw error;
         }
     } else {
@@ -376,7 +376,7 @@ async function getEnrollments() {
             const snapshot = await db.ref('enrollments').once('value');
             return snapshot.val() || {};
         } catch (error) {
-            console.error('Error fetching enrollments from Firebase:', error);
+            log.error('Storage', 'Error fetching enrollments', { error: (error && error.message) || String(error) });
             throw error;
         }
     } else {
@@ -390,7 +390,7 @@ async function setEnrollments(enrollments) {
             await initializeFirebase();
             await db.ref('enrollments').set(enrollments);
         } catch (error) {
-            console.error('Error saving enrollments to Firebase:', error);
+            log.error('Storage', 'Error saving enrollments', { error: (error && error.message) || String(error) });
             throw error;
         }
     } else {
@@ -497,9 +497,9 @@ async function saveAutoBackup() {
         }
 
         await db.ref('autoBackups').set(arr);
-        console.log('✅ Auto-backup saved:', new Date().toLocaleString());
+        log.success('Backup', 'Auto-backup saved at ' + new Date().toLocaleString());
     } catch (e) {
-        console.error('❌ Auto-backup failed:', e);
+        log.error('Backup', 'Auto-backup failed', { error: (e && e.message) || String(e) });
     }
 }
 
@@ -507,7 +507,7 @@ function startAutoBackup() {
     if (autoBackupTimer) clearInterval(autoBackupTimer);
     saveAutoBackup();
     autoBackupTimer = setInterval(saveAutoBackup, AUTO_BACKUP_INTERVAL_MS);
-    console.log(`🔄 Auto-backup enabled: Every ${AUTO_BACKUP_INTERVAL_MS / 60000} minutes, keeping last ${AUTO_BACKUP_KEEP} snapshots`);
+    log.info('Backup', 'Enabled: Every ' + (AUTO_BACKUP_INTERVAL_MS / 60000) + ' min, keeping last ' + AUTO_BACKUP_KEEP + ' snapshots');
 }
 
 async function listAutoBackups() {
@@ -631,9 +631,7 @@ function handleFileImport(event) {
 ⚠️ This will REPLACE all current data!
 `;
 
-            if (confirm(preview + '
-
-Do you want to continue?')) {
+            if (confirm(preview + '\n\nDo you want to continue?')) {
                 showLoading('📁 Importing data...');
                 showMessage(messageDiv, '⏳ Importing data to Firebase...', 'success');
 
